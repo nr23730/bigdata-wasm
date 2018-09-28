@@ -45,14 +45,17 @@ forloop
     ;
 
 expression
-    : left=expression '/' right=expression      #Div
+    :   left=expression '/' right=expression      #Div
     |	left=expression '*' right=expression    #Mult
     |	left=expression '-' right=expression    #Minus
     |	left=expression '+' right=expression    #Plus
-    |	number=NUMBER                           #Number
+    |	INTEGER                                 #Integer
+    |   LONG                                    #Long
+    |   FLOAT                                   #Float
+    |   DOUBLE                                  #Double
     |	varName=IDENTIFIER                      #Variable
     |	functionCall                            #FuncCallExpression
-    |   txt=STRING                              #String
+    //|   txt=STRING                              #String
 	|   left=expression '<' right=expression    #LT
     |   left=expression '<=' right=expression   #LEQ
     |   left=expression '>' right=expression    #GT
@@ -64,12 +67,12 @@ expression
     ;
 			
 varDeclaration
-    : 'var' varName=IDENTIFIER ':' TYPES '=' expr=expression
-    |   'var' varName=IDENTIFIER ':' TYPES
+    : 'var' varName=IDENTIFIER ':' type=TYPES '=' expr=expression
+    |   'var' varName=IDENTIFIER ':' type=TYPES
     ;
 			
 varHanding
-    : varName=IDENTIFIER ':' TYPES
+    : varName=IDENTIFIER ':' type=TYPES
     ;
 
 assignment
@@ -77,7 +80,7 @@ assignment
     ;
 
 functionDefinition
-    : 'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' ':' TYPES '{' statements=statementList 'return' returnValue=expression'}'
+    : 'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' ':' type=TYPES '{' statements=statementList 'return' returnValue=expression'}'
     | 'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' '{' statements=statementList '}'
     ;
 
@@ -99,20 +102,26 @@ expressionList
 
 TYPES
     : INTTYPE
-    | STRINGTYPE
+    //| STRINGTYPE
     | BOOLTYPE
+    | LONGTYPE
+    | FLOATTYPE
+    | DOUBLETYPE
     ;
 
-STRINGTYPE: 'String';
+//STRINGTYPE: 'String';
 BOOLTYPE: 'Boolean';
 INTTYPE: 'Int';
-//LONGTYPE: 'Long';
-//FLOATTYPE: 'Float';
-//DOUBLETYPE: 'Double';
+LONGTYPE: 'Long';
+FLOATTYPE: 'Float';
+DOUBLETYPE: 'Double';
 
 IDENTIFIER: [a-zA-Z][a-zA-Z0-9]*;
 
-NUMBER: [0-9]+;
+INTEGER: [0-9]+;
+LONG: INTEGER 'L';
+FLOAT: DOUBLE 'F';
+DOUBLE: ([0-9]* '.')? [0-9]+ (('e'|'E') [0-9]+)*;
 STRING: '"' .*? '"';
 
 WHITESPACE: [ \t\n\r]+ -> skip;

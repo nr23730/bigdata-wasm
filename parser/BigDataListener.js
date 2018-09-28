@@ -128,21 +128,21 @@ BigDataListener.prototype.exitLAND = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#String.
-BigDataListener.prototype.enterString = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#String.
-BigDataListener.prototype.exitString = function (ctx) {
-};
-
-
 // Enter a parse tree produced by BigDataParser#EQ.
 BigDataListener.prototype.enterEQ = function (ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#EQ.
 BigDataListener.prototype.exitEQ = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#Double.
+BigDataListener.prototype.enterDouble = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#Double.
+BigDataListener.prototype.exitDouble = function (ctx) {
 };
 
 
@@ -164,12 +164,30 @@ BigDataListener.prototype.exitLOR = function (ctx) {
 };
 
 
+// Enter a parse tree produced by BigDataParser#Integer.
+BigDataListener.prototype.enterInteger = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#Integer.
+BigDataListener.prototype.exitInteger = function (ctx) {
+};
+
+
 // Enter a parse tree produced by BigDataParser#Div.
 BigDataListener.prototype.enterDiv = function (ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#Div.
 BigDataListener.prototype.exitDiv = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#Float.
+BigDataListener.prototype.enterFloat = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#Float.
+BigDataListener.prototype.exitFloat = function (ctx) {
 };
 
 
@@ -182,21 +200,21 @@ BigDataListener.prototype.exitGEQ = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#Number.
-BigDataListener.prototype.enterNumber = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#Number.
-BigDataListener.prototype.exitNumber = function (ctx) {
-};
-
-
 // Enter a parse tree produced by BigDataParser#Mult.
 BigDataListener.prototype.enterMult = function (ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#Mult.
 BigDataListener.prototype.exitMult = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#Long.
+BigDataListener.prototype.enterLong = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#Long.
+BigDataListener.prototype.exitLong = function (ctx) {
 };
 
 

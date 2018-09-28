@@ -8,11 +8,11 @@ class DataType {
 }
 
 const Types = {
+    Boolean: new DataType("i32", 127),
     Int: new DataType("i32", 127),
     Long: new DataType("i64", 126),
     Float: new DataType("f32", 125),
-    Double: new DataType("f64", 124),
-    Boolean: new DataType("i32", 127)
+    Double: new DataType("f64", 124)
 };
 
 
@@ -23,7 +23,6 @@ class MyVisitor extends BigDataListener {
         this.wat = "";
         this.wasm = [];
         this.variables = new Map();
-        this.varcounter = new Map();
         this.funcCounter = 0;
         this.currentFunc = "";
         this.exportCounter = 0;
@@ -35,38 +34,131 @@ class MyVisitor extends BigDataListener {
     }
 
     exitDiv(ctx) {
-        this.wat += this.typeStack.pop().wat + ".div_u\n";
-        this.typeStack.pop();
-        this.wasm.push(110);
-        this.typeStack.push(Types.Int);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".div_u\n";
+                    this.wasm.push(110);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".div_u\n";
+                    this.wasm.push(128);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".div\n";
+                    this.wasm.push(149);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".div\n";
+                    this.wasm.push(163);
+                    break;
+            }
+            this.typeStack.push(type);
+        }
     }
 
     exitMult(ctx) {
-        this.wat += this.typeStack.pop().wat + ".mul\n";
-        this.typeStack.pop();
-        this.wasm.push(108);
-        this.typeStack.push(Types.Int);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".mul\n";
+                    this.wasm.push(108);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".mul\n";
+                    this.wasm.push(126);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".mul\n";
+                    this.wasm.push(148);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".mul\n";
+                    this.wasm.push(162);
+                    break;
+            }
+            this.typeStack.push(type);
+        }
     }
 
     exitPlus(ctx) {
-        this.wat += this.typeStack.pop().wat + ".add\n";
-        this.typeStack.pop();
-        this.wasm.push(106);
-        this.typeStack.push(Types.Int);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".add\n";
+                    this.wasm.push(106);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".add\n";
+                    this.wasm.push(124);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".add\n";
+                    this.wasm.push(146);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".add\n";
+                    this.wasm.push(160);
+                    break;
+            }
+            this.typeStack.push(type);
+        }
     }
 
     exitMinus(ctx) {
-        this.wat += this.typeStack.pop().wat + ".sub\n";
-        this.typeStack.pop();
-        this.wasm.push(107);
-        this.typeStack.push(Types.Int);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".sub\n";
+                    this.wasm.push(107);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".sub\n";
+                    this.wasm.push(125);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".sub\n";
+                    this.wasm.push(147);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".sub\n";
+                    this.wasm.push(161);
+                    break;
+            }
+            this.typeStack.push(type);
+        }
     }
 
-    enterNumber(ctx) {
+    enterInteger(ctx) {
         this.wat += "i32.const " + ctx.getText() + "\n";
         this.wasm.push(65);
         this.wasm.push(parseInt(ctx.getText()));
         this.typeStack.push(Types.Int);
+    }
+
+    enterLong(ctx) {
+        this.wat += "i64.const " + ctx.getText() + "\n";
+        this.wasm.push(66);
+        this.wasm.push(parseInt(ctx.getText()));
+        this.typeStack.push(Types.Long);
+    }
+
+    enterFloat(ctx) {
+        this.wat += "f32.const " + ctx.getText() + "\n";
+        this.wasm.push(67);
+        this.wasm.push(parseInt(ctx.getText()));
+        this.typeStack.push(Types.Float);
+    }
+
+    enterDouble(ctx) {
+        this.wat += "f64.const " + ctx.getText() + "\n";
+        this.wasm.push(68);
+        this.wasm.push(parseInt(ctx.getText()));
+        this.typeStack.push(Types.Double);
     }
 
     enterBoolean(ctx) {
@@ -141,14 +233,53 @@ class MyVisitor extends BigDataListener {
     }
 
     exitVarDeclaration(ctx) {
-        this.variables.get(this.currentFunc).set(ctx.varName.text, this.variables.get(this.currentFunc).size);
+        var type;
+        switch (ctx.type.text) {
+            case "Boolean":
+                type = Types.Boolean;
+                break;
+            case "Int":
+                type = Types.Int;
+                break;
+            case "Long":
+                type = Types.Long;
+                break;
+            case "Float":
+                type = Types.Float;
+                break;
+            case "Double":
+                type = Types.Double;
+                break;
+            default:
+                type = Types.Int;
+        }
+        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, type, false]);
         if (ctx.expr != null)
             this.exitAssignment(ctx);
-        this.varcounter.set(this.currentFunc, this.varcounter.get(this.currentFunc) + 1);
     }
 
     exitVarHanding(ctx) {
-        this.variables.get(this.currentFunc).set(ctx.varName.text, this.variables.get(this.currentFunc).size);
+        var type;
+        switch (ctx.type.text) {
+            case "Boolean":
+                type = Types.Boolean;
+                break;
+            case "Int":
+                type = Types.Int;
+                break;
+            case "Long":
+                type = Types.Long;
+                break;
+            case "Float":
+                type = Types.Float;
+                break;
+            case "Double":
+                type = Types.Double;
+                break;
+            default:
+                type = Types.Int;
+        }
+        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, type, true]);
     };
 
     exitAssignment(ctx) {
@@ -178,7 +309,6 @@ class MyVisitor extends BigDataListener {
         this.funcCounter++;
         this.exportCounter++;
         this.currentFunc = ctx.funcName.text;
-        this.varcounter.set(ctx.funcName.text, 0);
         this.functions.set(ctx.funcName.text, this.functions.size);
         this.variables.set(this.currentFunc, new Map());
         this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n" +
@@ -189,23 +319,29 @@ class MyVisitor extends BigDataListener {
         this.exportSection.push(0, this.exportCounter - 1);
         this.exportSection[2] = this.exportCounter;
         this.exportSection[1] = this.exportSection.length - 2;
-        this.wasm.push(0); //temporary length
+        this.wasm.push(0, 0); //temporary length
         this.wasmlength = this.wasm.length;
-        this.wasm.push(1, 0, 127);
     }
 
     exitFunctionDefinition(ctx) {
         this.wat += ")\n";
         this.wasm.push(11);
-        this.wasm[this.wasmlength + 1] = this.varcounter.get(ctx.funcName.text);
-        var local = "(local";
-        for (var i = 0; i < this.varcounter.get(ctx.funcName.text); i++)
-            local += " i32";
-        local += ")\n";
-        if (local == "(local)\n")
-            local = "";
+        var local = "";
+        var types = [];
+        console.log(this.variables.get(ctx.funcName.text));
+        this.variables.get(ctx.funcName.text).forEach(function (value, key, map) {
+            if (!value[2]) {
+                local += ("(local " + value[1].wat + ")\n");
+                types.push(1, value[1].wasm);
+            }
+        });
+        this.wasm[this.wasmlength - 1] = (types.length / 2);
+        for (var i = 0; i < types.length; i++) {
+            this.wasm.splice(this.wasmlength + i, 0, types[i]);
+            console.log(types[i]);
+        }
         this.wat = this.wat.replace("(local " + this.currentFunc + ")\n", local);
-        this.wasm[this.wasmlength - 1] = this.wasm.length - this.wasmlength;
+        this.wasm[this.wasmlength - 2] = this.wasm.length - this.wasmlength + 1;
     }
 
     exitFunctionCall(ctx) {
@@ -234,11 +370,7 @@ class MyVisitor extends BigDataListener {
     }
 
     getVarIndex(ctx) {
-        return this.variables.get(this.currentFunc).get(ctx);
-    }
-
-    getVarCount(functionName) {
-        return this.varcounter.get(functionName);
+        return this.variables.get(this.currentFunc).get(ctx)[0];
     }
 
 }
