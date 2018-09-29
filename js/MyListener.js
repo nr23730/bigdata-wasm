@@ -28,14 +28,7 @@ class MyVisitor extends BigDataListener {
         this.typeSection = [
             1, //section code
             0, //section size calculated afterwards
-            1, //num types
-
-            //type0
-            96, //func
-            1, //number of parameters
-            127, // i32
-            1, //number of return values
-            127 // i32
+            0, //num types (will get increased when new type added)
         ];
         this.functionSection = [
             3, //section code
@@ -268,53 +261,13 @@ class MyVisitor extends BigDataListener {
     }
 
     exitVarDeclaration(ctx) {
-        var type;
-        switch (ctx.type.text) {
-            case "Boolean":
-                type = Types.Boolean;
-                break;
-            case "Int":
-                type = Types.Int;
-                break;
-            case "Long":
-                type = Types.Long;
-                break;
-            case "Float":
-                type = Types.Float;
-                break;
-            case "Double":
-                type = Types.Double;
-                break;
-            default:
-                type = Types.Int;
-        }
-        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, type, false]);
+        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getVarType(ctx.type.text), false]);
         if (ctx.expr != null)
             this.exitAssignment(ctx);
     }
 
     exitVarHanding(ctx) {
-        var type;
-        switch (ctx.type.text) {
-            case "Boolean":
-                type = Types.Boolean;
-                break;
-            case "Int":
-                type = Types.Int;
-                break;
-            case "Long":
-                type = Types.Long;
-                break;
-            case "Float":
-                type = Types.Float;
-                break;
-            case "Double":
-                type = Types.Double;
-                break;
-            default:
-                type = Types.Int;
-        }
-        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, type, true]);
+        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getVarType(ctx.type.text), true]);
     };
 
     exitAssignment(ctx) {
@@ -347,7 +300,7 @@ class MyVisitor extends BigDataListener {
         this.functions.set(ctx.funcName.text, this.functions.size);
         this.variables.set(this.currentFunc, new Map());
         this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n" +
-            "(func $" + this.currentFunc + " (param " + this.currentFunc + ") (result i32)\n" +
+            "(func $" + this.currentFunc + " (param " + this.currentFunc + ") (result " + this.currentFunc + ")\n" +
             "(local " + this.currentFunc + ")\n";
         this.exportSection.push(this.currentFunc.length);
         this.exportSection = this.exportSection.concat([].slice.call(this.getUInt8(this.currentFunc)));
@@ -372,7 +325,7 @@ class MyVisitor extends BigDataListener {
                 types.push(1, value[1].wasm);
             } else {
                 params_wat += " (param " + value[1].wat + ")";
-                params_wasm.push(1, value[1].wasm);
+                params_wasm.push(value[1].wasm);
             }
         });
         this.bodySection[this.bodySectionlength - 1] = (types.length / 2);
@@ -380,6 +333,22 @@ class MyVisitor extends BigDataListener {
             this.bodySection.splice(this.bodySectionlength + i, 0, types[i]);
             console.log(types[i]);
         }
+
+        this.typeSection[2]++;
+        this.typeSection.push(96, //func
+            params_wasm.length); //number of parameters
+        this.typeSection = this.typeSection.concat(params_wasm);
+
+        if (ctx.type.text) {
+            this.typeSection.push(1, this.getVarType(ctx.type.text).wasm);
+            this.wat = this.wat.replace("(result " + this.currentFunc + ")", "(result " + this.getVarType(ctx.type.text).wat + ")");
+        } else {
+            this.typeSection.push(0);
+            this.wat = this.wat.replace("(result " + this.currentFunc + ")", "");
+
+        }
+
+
         this.wat = this.wat.replace("(param " + this.currentFunc + ")", params_wat);
         this.wat = this.wat.replace("(local " + this.currentFunc + ")\n", local);
         this.bodySection[this.bodySectionlength - 2] = this.bodySection.length - this.bodySectionlength + 1;
@@ -403,6 +372,28 @@ class MyVisitor extends BigDataListener {
 
     exitForloop(ctx) {
         //this.wat += "br_if $label$0\n)\n";
+    }
+
+    getVarType(type) {
+        switch (type) {
+            case "Boolean":
+                return Types.Boolean;
+                break;
+            case "Int":
+                return Types.Int;
+                break;
+            case "Long":
+                return Types.Long;
+                break;
+            case "Float":
+                return Types.Float;
+                break;
+            case "Double":
+                return Types.Double;
+                break;
+            default:
+                return Types.Int;
+        }
     }
 
 
