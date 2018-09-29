@@ -11,12 +11,12 @@ function BigDataListener() {
 BigDataListener.prototype = Object.create(antlr4.tree.ParseTreeListener.prototype);
 BigDataListener.prototype.constructor = BigDataListener;
 
-// Enter a parse tree produced by BigDataParser#program.
-BigDataListener.prototype.enterProgram = function (ctx) {
+// Enter a parse tree produced by BigDataParser#input.
+BigDataListener.prototype.enterInput = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#program.
-BigDataListener.prototype.exitProgram = function (ctx) {
+// Exit a parse tree produced by BigDataParser#input.
+BigDataListener.prototype.exitInput = function (ctx) {
 };
 
 

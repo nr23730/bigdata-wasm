@@ -33,6 +33,14 @@ class MyVisitor extends BigDataListener {
         this.typeStack = [];
     }
 
+    enterInput(ctx) {
+        this.wat += "(module\n";
+    }
+
+    exitInput(ctx) {
+        this.wat += ")";
+    }
+
     exitDiv(ctx) {
         var type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {

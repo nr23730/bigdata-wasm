@@ -37,12 +37,6 @@ fun main(mul : Int) : Int {
 <script type="text/javascript">
     var main;
 
-    var createWatString = function (instructions) {
-        return "(module\n" +
-            instructions +
-            ")"
-    };
-
     var createWasmString = function (instructions, functionCounter, exportSection) {
         var binaryMagic = Array(
             0, 97, 115, 109, //WASM Binary Magic
@@ -137,10 +131,10 @@ fun main(mul : Int) : Int {
         var tokens = new antlr4.CommonTokenStream(lexer);
         var parser = new BigDataParser.BigDataParser(tokens);
         parser.buildParseTrees = true;
-        var tree = parser.program();
+        var tree = parser.input();
         var listener = new MyListener(parser);
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
-        document.getElementById('wat').innerText = "WebAssembly-Text (WAT):\n\n" + createWatString(listener.wat);
+        document.getElementById('wat').innerText = "WebAssembly-Text (WAT):\n\n" + listener.wat;
         wasm = createWasmString(listener.wasm, listener.funcCounter, listener.exportSection);
         console.log(wasm);
         document.getElementById('wasm').innerText = "WebAssembly-Bytecode (WASM):\n\n" + wasm;

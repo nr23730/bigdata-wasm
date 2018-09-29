@@ -1,7 +1,9 @@
 grammar BigData;
 
-program
-    : programPart+;
+input:
+    programPart+ EOF
+    ;
+
 
 programPart
     : //varDeclaration      #ProgPartVarDeclaration
