@@ -135,7 +135,7 @@ fun main(mul : Int) : Int {
         var listener = new MyListener(parser);
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
         document.getElementById('wat').innerText = "WebAssembly-Text (WAT):\n\n" + listener.wat;
-        wasm = createWasmString(listener.wasm, listener.funcCounter, listener.exportSection);
+        wasm = listener.getWasm();
         console.log(wasm);
         document.getElementById('wasm').innerText = "WebAssembly-Bytecode (WASM):\n\n" + wasm;
         var wasmModule = new WebAssembly.Module(new Uint8Array(wasm));
