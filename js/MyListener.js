@@ -339,7 +339,6 @@ class MyVisitor extends BigDataListener {
         }
         for (var i = 0; i < this.funcReplace.length; i++)
             this.funcReplace[i] = this.funcReplace[i] + local_wasm.length;
-        console.log(this.bodySection);
 
         this.typeSection[2]++;
         this.functionSection[2]++;
@@ -357,7 +356,6 @@ class MyVisitor extends BigDataListener {
             this.wat = this.wat.replace("(result " + this.currentFunc + ")", "");
 
         }
-
 
         this.wat = this.wat.replace("(param " + this.currentFunc + ")", params_wat);
         this.wat = this.wat.replace("(local " + this.currentFunc + ")\n", local_wat);
@@ -400,15 +398,11 @@ class MyVisitor extends BigDataListener {
         }
     }
 
-
     getUInt8(string) {
         return new TextEncoder("utf-8").encode(string);
     }
 
     getLEB128(int) {
-        var size = Math.ceil(Math.log2(int.length));
-        var leb = [];
-
         while (int) {
             var temp = int & 127;
             int = int >> 7;
@@ -419,18 +413,6 @@ class MyVisitor extends BigDataListener {
         }
         return leb;
     }
-
-
-    getI64Bytes(int64) {
-        var bytes = [];
-        var int64 = 8;
-        do {
-            bytes[--int64] = int64 & (127);
-            int64 = int64 >> 7;
-        } while (int64)
-        return bytes;
-    }
-
 
     getVarIndex(ctx) {
         return this.variables.get(this.currentFunc).get(ctx)[0];
@@ -451,7 +433,5 @@ class MyVisitor extends BigDataListener {
             .concat(this.codeSection);
     }
 }
-
-
 
 module.exports = MyVisitor;
