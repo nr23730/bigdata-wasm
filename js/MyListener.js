@@ -163,14 +163,14 @@ class MyVisitor extends BigDataListener {
     enterInteger(ctx) {
         this.wat += "i32.const " + ctx.getText() + "\n";
         this.bodySection.push(65);
-        this.bodySection.push(parseInt(ctx.getText()));
+        this.bodySection = this.bodySection.concat(this.getLEB128(ctx.getText()));
         this.typeStack.push(Types.Int);
     }
 
     enterLong(ctx) {
         this.wat += "i64.const " + ctx.getText() + "\n";
         this.bodySection.push(66);
-        this.bodySection.push(parseInt(ctx.getText()));
+        this.bodySection = this.bodySection.concat(this.getLEB128(parseInt(ctx.getText())));
         this.typeStack.push(Types.Long);
     }
 
@@ -404,6 +404,33 @@ class MyVisitor extends BigDataListener {
     getUInt8(string) {
         return new TextEncoder("utf-8").encode(string);
     }
+
+    getLEB128(int) {
+        var size = Math.ceil(Math.log2(int.length));
+        var leb = [];
+
+        while (int) {
+            var temp = int & 127;
+            int = int >> 7;
+            if (int)
+                leb.push(temp | 128);
+            else
+                leb.push(temp);
+        }
+        return leb;
+    }
+
+
+    getI64Bytes(int64) {
+        var bytes = [];
+        var int64 = 8;
+        do {
+            bytes[--int64] = int64 & (127);
+            int64 = int64 >> 7;
+        } while (int64)
+        return bytes;
+    }
+
 
     getVarIndex(ctx) {
         return this.variables.get(this.currentFunc).get(ctx)[0];
