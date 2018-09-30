@@ -57,12 +57,6 @@ class MyVisitor extends BigDataListener {
     }
 
     exitInput(ctx) {
-        console.log(this.funcReplace);
-        for (var i = 0; i < this.funcReplace.length; i++) {
-            console.log(this.bodySection[this.funcReplace[i]]);
-            this.bodySection[this.funcReplace[i]] = this.functions.get(this.bodySection[this.funcReplace[i]]);
-            console.log(this.bodySection[this.funcReplace[i]]);
-        }
         this.wat += ")";
     }
 
@@ -302,6 +296,14 @@ class MyVisitor extends BigDataListener {
         this.exportCounter++;
         this.currentFunc = ctx.funcName.text;
         this.functions.set(ctx.funcName.text, this.functions.size);
+
+        for (var i = 0; i < this.funcReplace.length; i++) {
+            if (this.bodySection[this.funcReplace[i]] == this.currentFunc) {
+                this.bodySection[this.funcReplace[i]] = this.functions.get(this.bodySection[this.funcReplace[i]]);
+                this.funcReplace.splice(i, 1);
+            }
+        }
+
         this.variables.set(this.currentFunc, new Map());
         this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n" +
             "(func $" + this.currentFunc + " (param " + this.currentFunc + ") (result " + this.currentFunc + ")\n" +
@@ -318,25 +320,26 @@ class MyVisitor extends BigDataListener {
     exitFunctionDefinition(ctx) {
         this.wat += ")\n";
         this.bodySection.push(11);
-        var local = "";
-        var types = [];
+        var local_wat = "";
+        var local_wasm = [];
         var params_wat = "";
         var params_wasm = [];
         this.variables.get(ctx.funcName.text).forEach(function (value, key, map) {
             if (!value[2]) {
-                local += ("(local " + value[1].wat + ")\n");
-                types.push(1, value[1].wasm);
+                local_wat += ("(local " + value[1].wat + ")\n");
+                local_wasm.push(1, value[1].wasm);
             } else {
                 params_wat += " (param " + value[1].wat + ")";
                 params_wasm.push(value[1].wasm);
             }
         });
-        this.bodySection[this.bodySectionlength - 1] = (types.length / 2);
-        for (var i = 0; i < types.length; i++) {
-            this.bodySection.splice(this.bodySectionlength + i, 0, types[i]);
+        this.bodySection[this.bodySectionlength - 1] = (local_wasm.length / 2);
+        for (var i = 0; i < local_wasm.length; i++) {
+            this.bodySection.splice(this.bodySectionlength + i, 0, local_wasm[i]);
         }
         for (var i = 0; i < this.funcReplace.length; i++)
-            this.funcReplace[i] = this.funcReplace[i] + types.length;
+            this.funcReplace[i] = this.funcReplace[i] + local_wasm.length;
+        console.log(this.bodySection);
 
         this.typeSection[2]++;
         this.functionSection[2]++;
@@ -346,7 +349,7 @@ class MyVisitor extends BigDataListener {
         this.typeSection = this.typeSection.concat(params_wasm);
         this.functionSection.push(this.functionSection[2] - 1);
 
-        if (ctx.type.text) {
+        if (ctx.type) {
             this.typeSection.push(1, this.getVarType(ctx.type.text).wasm);
             this.wat = this.wat.replace("(result " + this.currentFunc + ")", "(result " + this.getVarType(ctx.type.text).wat + ")");
         } else {
@@ -357,7 +360,7 @@ class MyVisitor extends BigDataListener {
 
 
         this.wat = this.wat.replace("(param " + this.currentFunc + ")", params_wat);
-        this.wat = this.wat.replace("(local " + this.currentFunc + ")\n", local);
+        this.wat = this.wat.replace("(local " + this.currentFunc + ")\n", local_wat);
         this.bodySection[this.bodySectionlength - 2] = this.bodySection.length - this.bodySectionlength + 1;
     }
 

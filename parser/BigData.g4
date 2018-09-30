@@ -16,6 +16,7 @@ statement
 	| branch
 	| whileloop
 	| forloop
+	| functionCall
 	//| println
 	;
 
