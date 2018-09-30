@@ -42,7 +42,6 @@ class MyVisitor extends BigDataListener {
             0, //number of functions inserted afterwards
         ];
         this.variables = new Map();
-        this.funcCounter = 0;
         this.currentFunc = "";
         this.exportCounter = 0;
         this.exportSection = [7, 0, 0];
@@ -58,6 +57,12 @@ class MyVisitor extends BigDataListener {
     }
 
     exitInput(ctx) {
+        console.log(this.funcReplace);
+        for (var i = 0; i < this.funcReplace.length; i++) {
+            console.log(this.bodySection[this.funcReplace[i]]);
+            this.bodySection[this.funcReplace[i]] = this.functions.get(this.bodySection[this.funcReplace[i]]);
+            console.log(this.bodySection[this.funcReplace[i]]);
+        }
         this.wat += ")";
     }
 
@@ -294,7 +299,6 @@ class MyVisitor extends BigDataListener {
     }
 
     enterFunctionDefinition(ctx) {
-        this.funcCounter++;
         this.exportCounter++;
         this.currentFunc = ctx.funcName.text;
         this.functions.set(ctx.funcName.text, this.functions.size);
@@ -318,7 +322,6 @@ class MyVisitor extends BigDataListener {
         var types = [];
         var params_wat = "";
         var params_wasm = [];
-        console.log(this.variables.get(ctx.funcName.text));
         this.variables.get(ctx.funcName.text).forEach(function (value, key, map) {
             if (!value[2]) {
                 local += ("(local " + value[1].wat + ")\n");
@@ -331,13 +334,17 @@ class MyVisitor extends BigDataListener {
         this.bodySection[this.bodySectionlength - 1] = (types.length / 2);
         for (var i = 0; i < types.length; i++) {
             this.bodySection.splice(this.bodySectionlength + i, 0, types[i]);
-            console.log(types[i]);
         }
+        for (var i = 0; i < this.funcReplace.length; i++)
+            this.funcReplace[i] = this.funcReplace[i] + types.length;
 
         this.typeSection[2]++;
+        this.functionSection[2]++;
+        this.codeSection[2]++;
         this.typeSection.push(96, //func
             params_wasm.length); //number of parameters
         this.typeSection = this.typeSection.concat(params_wasm);
+        this.functionSection.push(this.functionSection[2] - 1);
 
         if (ctx.type.text) {
             this.typeSection.push(1, this.getVarType(ctx.type.text).wasm);
@@ -358,12 +365,6 @@ class MyVisitor extends BigDataListener {
         this.wat += "call $" + ctx.funcName.text + "\n";
         this.bodySection.push(16, ctx.funcName.text);
         this.funcReplace.push(this.bodySection.length - 1);
-    }
-
-    exitProgram(ctx) {
-        for (var i = 0; i < this.funcReplace.length; i++) {
-            this.bodySection[this.funcReplace[i]] = this.functions.get(this.bodySection[this.funcReplace[i]]);
-        }
     }
 
     enterForloop(ctx) {
@@ -408,14 +409,10 @@ class MyVisitor extends BigDataListener {
     getWasm() {
         this.typeSection[1] = this.typeSection.length - 2; //set section length
 
-        for (var i = 0; i < this.funcCounter; i++)
-            this.functionSection.push(0); // function i signature index
         this.functionSection[1] = this.functionSection.length - 2;
-        this.functionSection[2] = this.funcCounter;
 
         this.codeSection = this.codeSection.concat(this.bodySection)
         this.codeSection[1] = this.codeSection.length - 2;
-        this.codeSection[2] = this.funcCounter;
 
         return this.binaryMagic
             .concat(this.typeSection)

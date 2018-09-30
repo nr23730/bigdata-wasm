@@ -95,7 +95,7 @@ statementList
     ;
 
 functionCall
-    : funcName=IDENTIFIER '(' arguments=expressionList ')'
+    : funcName=IDENTIFIER '(' arguments=expressionList* ')'
     ;
 
 expressionList
