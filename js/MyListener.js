@@ -196,45 +196,153 @@ class MyVisitor extends BigDataListener {
     }
 
     exitLT(ctx) {
-        this.wat += this.typeStack.pop().wat + ".lt_u\n";
-        this.typeStack.pop();
-        this.bodySection.push(73);
-        this.typeStack.push(Types.Boolean);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".lt_s\n";
+                    this.bodySection.push(72);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".lt_s\n";
+                    this.bodySection.push(83);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".lt\n";
+                    this.bodySection.push(93);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".lt\n";
+                    this.bodySection.push(99);
+                    break;
+            }
+            this.typeStack.push(Types.Boolean);
+        }
     }
 
     exitLEQ(ctx) {
-        this.wat += this.typeStack.pop().wat + ".le_u\n";
-        this.typeStack.pop();
-        this.bodySection.push(77);
-        this.typeStack.push(Types.Boolean);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".le_s\n";
+                    this.bodySection.push(76);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".le_s\n";
+                    this.bodySection.push(87);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".le\n";
+                    this.bodySection.push(95);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".le\n";
+                    this.bodySection.push(101);
+                    break;
+            }
+            this.typeStack.push(Types.Boolean);
+        }
     }
 
     exitGT(ctx) {
-        this.wat += this.typeStack.pop().wat + ".gt_u\n";
-        this.typeStack.pop();
-        this.bodySection.push(75);
-        this.typeStack.push(Types.Boolean);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".gt_s\n";
+                    this.bodySection.push(74);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".gt_s\n";
+                    this.bodySection.push(85);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".gt\n";
+                    this.bodySection.push(94);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".gt\n";
+                    this.bodySection.push(100);
+                    break;
+            }
+            this.typeStack.push(Types.Boolean);
+        }
     }
 
     exitGEQ(ctx) {
-        this.wat += this.typeStack.pop().wat + ".ge_u\n";
-        this.typeStack.pop();
-        this.bodySection.push(79);
-        this.typeStack.push(Types.Boolean);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".ge_s\n";
+                    this.bodySection.push(78);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".ge_s\n";
+                    this.bodySection.push(89);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".ge\n";
+                    this.bodySection.push(96);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".ge\n";
+                    this.bodySection.push(102);
+                    break;
+            }
+            this.typeStack.push(Types.Boolean);
+        }
     }
 
     exitEQ(ctx) {
-        this.wat += this.typeStack.pop().wat + ".eq\n";
-        this.typeStack.pop();
-        this.bodySection.push(70);
-        this.typeStack.push(Types.Boolean);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".eq\n";
+                    this.bodySection.push(70);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".eq\n";
+                    this.bodySection.push(81);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".eq\n";
+                    this.bodySection.push(91);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".eq\n";
+                    this.bodySection.push(97);
+                    break;
+            }
+            this.typeStack.push(Types.Boolean);
+        }
     }
 
     exitNEQ(ctx) {
-        this.wat += this.typeStack.pop().wat + ".ne\n";
-        this.typeStack.pop();
-        this.bodySection.push(71);
-        this.typeStack.push(Types.Boolean);
+        var type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            switch (type) {
+                case Types.Int:
+                    this.wat += type.wat + ".ne\n";
+                    this.bodySection.push(71);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".ne\n";
+                    this.bodySection.push(82);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".ne\n";
+                    this.bodySection.push(92);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".ne\n";
+                    this.bodySection.push(98);
+                    break;
+            }
+            this.typeStack.push(Types.Boolean);
+        }
     }
 
     exitLAND(ctx) {
@@ -403,14 +511,20 @@ class MyVisitor extends BigDataListener {
     }
 
     getLEB128(int) {
+        var size = Math.ceil(Math.log2(int.length));
         var leb = [];
-        while (int) {
-            var temp = int & 127;
+        var running = true;
+        while (running) {
+            let temp = int & 127;
+            if (int < 0)
+                temp = temp | (-(1 << (size - 7)));
             int = int >> 7;
-            if (int)
-                leb.push(temp | 128);
-            else
+            if ((int == 0 && ((temp & 64) == 0)) || ((int == -1 && ((temp & 64) == 64)))) {
                 leb.push(temp);
+                running = false;
+            }
+            else
+                leb.push(temp | 128);
         }
         return leb;
     }
@@ -424,7 +538,7 @@ class MyVisitor extends BigDataListener {
 
         this.functionSection[1] = this.functionSection.length - 2;
 
-        this.codeSection = this.codeSection.concat(this.bodySection)
+        this.codeSection = this.codeSection.concat(this.bodySection);
         this.codeSection[1] = this.codeSection.length - 2;
 
         return this.binaryMagic
