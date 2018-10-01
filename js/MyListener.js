@@ -403,6 +403,7 @@ class MyVisitor extends BigDataListener {
     }
 
     getLEB128(int) {
+        var leb = [];
         while (int) {
             var temp = int & 127;
             int = int >> 7;
