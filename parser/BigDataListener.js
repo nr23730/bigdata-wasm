@@ -218,6 +218,15 @@ BigDataListener.prototype.exitLong = function (ctx) {
 };
 
 
+// Enter a parse tree produced by BigDataParser#PARENTHESIS.
+BigDataListener.prototype.enterPARENTHESIS = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#PARENTHESIS.
+BigDataListener.prototype.exitPARENTHESIS = function (ctx) {
+};
+
+
 // Enter a parse tree produced by BigDataParser#LEQ.
 BigDataListener.prototype.enterLEQ = function (ctx) {
 };

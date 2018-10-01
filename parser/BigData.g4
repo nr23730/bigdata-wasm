@@ -67,6 +67,7 @@ expression
     |   left=expression '!=' right=expression   #NEQ
     |   left=expression '&&' right=expression   #LAND
     |   left=expression '||' right=expression   #LOR
+    |   '(' expression ')'                      #PARENTHESIS
     ;
 			
 varDeclaration
