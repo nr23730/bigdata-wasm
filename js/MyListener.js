@@ -8,11 +8,11 @@ class DataType {
 }
 
 const Types = {
-    Boolean: new DataType("i32", 127),
-    Int: new DataType("i32", 127),
-    Long: new DataType("i64", 126),
-    Float: new DataType("f32", 125),
-    Double: new DataType("f64", 124)
+    Boolean: new DataType("i32", 0x7f),
+    Int: new DataType("i32", 0x7f),
+    Long: new DataType("i64", 0x7e),
+    Float: new DataType("f32", 0x7d),
+    Double: new DataType("f64", 0x7c)
 };
 
 
@@ -22,29 +22,29 @@ class MyVisitor extends BigDataListener {
         super();
         this.wat = "";
         this.binaryMagic = [
-            0, 97, 115, 109, //WASM Binary Magic
-            1, 0, 0, 0, //WASM Version
+            0x00, 0x61, 0x73, 0x6d, //WASM Binary Magic
+            0x01, 0x00, 0x00, 0x00, //WASM Version
         ];
         this.typeSection = [
-            1, //section code
-            0, //section size calculated afterwards
-            0, //num types (will get increased when new type added)
+            0x01, //section code
+            0x00, //section size calculated afterwards
+            0x00, //num types (will get increased when new type added)
         ];
         this.functionSection = [
-            3, //section code
-            0, //section size calculated afterwards
-            0 //number of functions
+            0x03, //section code
+            0x00, //section size calculated afterwards
+            0x00 //number of functions
         ];
         this.bodySection = [];
         this.codeSection = [
-            10, //section code
-            0, //section size calculated afterwards
-            0, //number of functions inserted afterwards
+            0x0a, //section code
+            0x00, //section size calculated afterwards
+            0x00, //number of functions inserted afterwards
         ];
         this.variables = new Map();
         this.currentFunc = "";
         this.exportCounter = 0;
-        this.exportSection = [7, 0, 0];
+        this.exportSection = [0x07, 0x00, 0x00];
         this.bodySectionlength = 0;
         this.functions = new Map();
         this.funcReplace = [];
@@ -66,19 +66,19 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".div_s\n";
-                    this.bodySection.push(109);
+                    this.bodySection.push(0x6d);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".div_s\n";
-                    this.bodySection.push(127);
+                    this.bodySection.push(0x7f);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".div\n";
-                    this.bodySection.push(149);
+                    this.bodySection.push(0x95);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".div\n";
-                    this.bodySection.push(163);
+                    this.bodySection.push(0xa3);
                     break;
             }
             this.typeStack.push(type);
@@ -91,19 +91,19 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".mul\n";
-                    this.bodySection.push(108);
+                    this.bodySection.push(0x6c);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".mul\n";
-                    this.bodySection.push(126);
+                    this.bodySection.push(0x7e);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".mul\n";
-                    this.bodySection.push(148);
+                    this.bodySection.push(0x94);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".mul\n";
-                    this.bodySection.push(162);
+                    this.bodySection.push(0xa2);
                     break;
             }
             this.typeStack.push(type);
@@ -116,19 +116,19 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".add\n";
-                    this.bodySection.push(106);
+                    this.bodySection.push(0x6a);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".add\n";
-                    this.bodySection.push(124);
+                    this.bodySection.push(0x7c);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".add\n";
-                    this.bodySection.push(146);
+                    this.bodySection.push(0x92);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".add\n";
-                    this.bodySection.push(160);
+                    this.bodySection.push(0xa0);
                     break;
             }
             this.typeStack.push(type);
@@ -141,19 +141,19 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".sub\n";
-                    this.bodySection.push(107);
+                    this.bodySection.push(0x6b);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".sub\n";
-                    this.bodySection.push(125);
+                    this.bodySection.push(0x7d);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".sub\n";
-                    this.bodySection.push(147);
+                    this.bodySection.push(0x93);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".sub\n";
-                    this.bodySection.push(161);
+                    this.bodySection.push(0xa1);
                     break;
             }
             this.typeStack.push(type);
@@ -162,14 +162,14 @@ class MyVisitor extends BigDataListener {
 
     enterInteger(ctx) {
         this.wat += "i32.const " + ctx.getText() + "\n";
-        this.bodySection.push(65);
+        this.bodySection.push(0x41);
         this.bodySection = this.bodySection.concat(this.getLEB128(ctx.getText()));
         this.typeStack.push(Types.Int);
     }
 
     enterLong(ctx) {
         this.wat += "i64.const " + ctx.getText().replace("L", "") + "\n";
-        this.bodySection.push(66);
+        this.bodySection.push(0x42);
         this.bodySection = this.bodySection.concat(this.getLEB128(parseInt(ctx.getText())));
         this.typeStack.push(Types.Long);
     }
@@ -177,14 +177,14 @@ class MyVisitor extends BigDataListener {
     enterFloat(ctx) {
         let text = ctx.getText().replace("F", "");
         this.wat += "f32.const " + text + "\n";
-        this.bodySection.push(67);
+        this.bodySection.push(0x43);
         this.bodySection = this.bodySection.concat([].slice.call(this.getFloat32(text)));
         this.typeStack.push(Types.Float);
     }
 
     enterDouble(ctx) {
         this.wat += "f64.const " + ctx.getText() + "\n";
-        this.bodySection.push(68);
+        this.bodySection.push(0x44);
         this.bodySection = this.bodySection.concat([].slice.call(this.getFloat64(ctx.getText())));
         this.typeStack.push(Types.Double);
     }
@@ -200,7 +200,7 @@ class MyVisitor extends BigDataListener {
                 break;
         }
         this.wat += "i32.const " + value + "\n";
-        this.bodySection.push(65);
+        this.bodySection.push(0x41);
         this.bodySection.push(value);
         this.typeStack.push(Types.Boolean);
     }
@@ -211,19 +211,19 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".lt_s\n";
-                    this.bodySection.push(72);
+                    this.bodySection.push(0x48);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".lt_s\n";
-                    this.bodySection.push(83);
+                    this.bodySection.push(0x53);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".lt\n";
-                    this.bodySection.push(93);
+                    this.bodySection.push(0x3f);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".lt\n";
-                    this.bodySection.push(99);
+                    this.bodySection.push(0x63);
                     break;
             }
             this.typeStack.push(Types.Boolean);
@@ -236,19 +236,19 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".le_s\n";
-                    this.bodySection.push(76);
+                    this.bodySection.push(0x4c);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".le_s\n";
-                    this.bodySection.push(87);
+                    this.bodySection.push(0x57);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".le\n";
-                    this.bodySection.push(95);
+                    this.bodySection.push(0x5f);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".le\n";
-                    this.bodySection.push(101);
+                    this.bodySection.push(0x65);
                     break;
             }
             this.typeStack.push(Types.Boolean);
@@ -261,19 +261,19 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".gt_s\n";
-                    this.bodySection.push(74);
+                    this.bodySection.push(0x4a);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".gt_s\n";
-                    this.bodySection.push(85);
+                    this.bodySection.push(0x55);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".gt\n";
-                    this.bodySection.push(94);
+                    this.bodySection.push(0x5e);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".gt\n";
-                    this.bodySection.push(100);
+                    this.bodySection.push(0x64);
                     break;
             }
             this.typeStack.push(Types.Boolean);
@@ -286,19 +286,19 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".ge_s\n";
-                    this.bodySection.push(78);
+                    this.bodySection.push(0x7e);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".ge_s\n";
-                    this.bodySection.push(89);
+                    this.bodySection.push(0x59);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".ge\n";
-                    this.bodySection.push(96);
+                    this.bodySection.push(0x60);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".ge\n";
-                    this.bodySection.push(102);
+                    this.bodySection.push(0x66);
                     break;
             }
             this.typeStack.push(Types.Boolean);
@@ -311,23 +311,23 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Boolean:
                     this.wat += type.wat + ".eq\n";
-                    this.bodySection.push(70);
+                    this.bodySection.push(0x46);
                     break;
                 case Types.Int:
                     this.wat += type.wat + ".eq\n";
-                    this.bodySection.push(70);
+                    this.bodySection.push(0x46);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".eq\n";
-                    this.bodySection.push(81);
+                    this.bodySection.push(0x51);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".eq\n";
-                    this.bodySection.push(91);
+                    this.bodySection.push(0x5b);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".eq\n";
-                    this.bodySection.push(97);
+                    this.bodySection.push(0x61);
                     break;
             }
             this.typeStack.push(Types.Boolean);
@@ -340,23 +340,23 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Boolean:
                     this.wat += type.wat + ".ne\n";
-                    this.bodySection.push(71);
+                    this.bodySection.push(0x47);
                     break;
                 case Types.Int:
                     this.wat += type.wat + ".ne\n";
-                    this.bodySection.push(71);
+                    this.bodySection.push(0x47);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".ne\n";
-                    this.bodySection.push(82);
+                    this.bodySection.push(0x52);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".ne\n";
-                    this.bodySection.push(92);
+                    this.bodySection.push(0x5c);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".ne\n";
-                    this.bodySection.push(98);
+                    this.bodySection.push(0x62);
                     break;
             }
             this.typeStack.push(Types.Boolean);
@@ -366,21 +366,21 @@ class MyVisitor extends BigDataListener {
     exitLAND(ctx) {
         this.wat += this.typeStack.pop().wat + ".and\n";
         this.typeStack.pop();
-        this.bodySection.push(113);
+        this.bodySection.push(0x71);
         this.typeStack.push(Types.Boolean)
     }
 
     exitLOR(ctx) {
         this.wat += this.typeStack.pop().wat + ".or\n";
         this.typeStack.pop();
-        this.bodySection.push(114);
+        this.bodySection.push(0x72);
         this.typeStack.push(Types.Boolean)
     }
 
     enterVariable(ctx) {
         this.typeStack.push(this.getVarType(ctx.varName.text));
         this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(32);
+        this.bodySection.push(0x20);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
 
     }
@@ -397,25 +397,25 @@ class MyVisitor extends BigDataListener {
 
     exitAssignment(ctx) {
         this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(33);
+        this.bodySection.push(0x21);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
         this.typeStack.pop()
     }
 
     enterTrueBlock(ctx) {
         this.wat += "if\n";
-        this.bodySection.push(4, 64);
+        this.bodySection.push(0x04, 0x40);
         this.typeStack.pop();
     }
 
     exitBranch(ctx) {
         this.wat += "end\n";
-        this.bodySection.push(11);
+        this.bodySection.push(0x0b);
     }
 
     enterElseBlock(ctx) {
         this.wat += "else\n";
-        this.bodySection.push(5);
+        this.bodySection.push(0x05);
     }
 
     enterFunctionDefinition(ctx) {
@@ -436,16 +436,16 @@ class MyVisitor extends BigDataListener {
             "(local " + this.currentFunc + ")\n";
         this.exportSection.push(this.currentFunc.length);
         this.exportSection = this.exportSection.concat([].slice.call(this.getUInt8(this.currentFunc)));
-        this.exportSection.push(0, this.exportCounter - 1);
+        this.exportSection.push(0x00, this.exportCounter - 1);
         this.exportSection[2] = this.exportCounter;
         this.exportSection[1] = this.exportSection.length - 2;
-        this.bodySection.push(0, 0); //temporary length
+        this.bodySection.push(0x00, 0x00); //temporary length
         this.bodySectionlength = this.bodySection.length;
     }
 
     exitFunctionDefinition(ctx) {
         this.wat += ")\n";
-        this.bodySection.push(11);
+        this.bodySection.push(0x0b);
         let local_wat = "";
         let local_wasm = [];
         let params_wat = "";
@@ -469,16 +469,16 @@ class MyVisitor extends BigDataListener {
         this.typeSection[2]++;
         this.functionSection[2]++;
         this.codeSection[2]++;
-        this.typeSection.push(96, //func
+        this.typeSection.push(0x60, //func
             params_wasm.length); //number of parameters
         this.typeSection = this.typeSection.concat(params_wasm);
         this.functionSection.push(this.functionSection[2] - 1);
 
         if (ctx.type) {
-            this.typeSection.push(1, this.getTypeObject(ctx.type.text).wasm);
+            this.typeSection.push(0x01, this.getTypeObject(ctx.type.text).wasm);
             this.wat = this.wat.replace("(result " + this.currentFunc + ")", "(result " + this.getTypeObject(ctx.type.text).wat + ")");
         } else {
-            this.typeSection.push(0);
+            this.typeSection.push(0x00);
             this.wat = this.wat.replace("(result " + this.currentFunc + ")", "");
 
         }
@@ -490,7 +490,7 @@ class MyVisitor extends BigDataListener {
 
     exitFunctionCall(ctx) {
         this.wat += "call $" + ctx.funcName.text + "\n";
-        this.bodySection.push(16, ctx.funcName.text);
+        this.bodySection.push(0x10, ctx.funcName.text);
         this.funcReplace.push(this.bodySection.length - 1);
     }
 
