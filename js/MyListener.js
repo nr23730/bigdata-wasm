@@ -175,16 +175,17 @@ class MyVisitor extends BigDataListener {
     }
 
     enterFloat(ctx) {
-        this.wat += "f32.const " + ctx.getText().replace("F", "") + "\n";
+        let text = ctx.getText().replace("F", "");
+        this.wat += "f32.const " + text + "\n";
         this.bodySection.push(67);
-        this.bodySection.push(parseInt(ctx.getText()));
+        this.bodySection = this.bodySection.concat([].slice.call(this.getFloat32(text)));
         this.typeStack.push(Types.Float);
     }
 
     enterDouble(ctx) {
         this.wat += "f64.const " + ctx.getText() + "\n";
         this.bodySection.push(68);
-        this.bodySection.push(parseInt(ctx.getText()));
+        this.bodySection = this.bodySection.concat([].slice.call(this.getFloat64(ctx.getText())));
         this.typeStack.push(Types.Double);
     }
 
@@ -546,12 +547,20 @@ class MyVisitor extends BigDataListener {
         return leb;
     }
 
+    getFloat32(float) {
+        return new Uint8Array(Float32Array.of(float).buffer);
+
+    }
+
+    getFloat64(float) {
+        return new Uint8Array(Float64Array.of(float).buffer);
+    }
+
     getVarIndex(ctx) {
         return this.variables.get(this.currentFunc).get(ctx)[0];
     }
 
     getVarType(ctx) {
-        console.log(this.variables.get(this.currentFunc).get(ctx));
         return this.variables.get(this.currentFunc).get(ctx)[1];
     }
 
