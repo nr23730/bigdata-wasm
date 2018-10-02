@@ -61,7 +61,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitDiv(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -86,7 +86,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitMult(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -111,7 +111,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitPlus(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -136,7 +136,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitMinus(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -196,7 +196,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitLT(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -221,7 +221,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitLEQ(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -246,7 +246,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitGT(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -271,7 +271,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitGEQ(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -296,7 +296,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitEQ(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -321,7 +321,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitNEQ(ctx) {
-        var type = this.typeStack.pop();
+        let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
@@ -405,7 +405,7 @@ class MyVisitor extends BigDataListener {
         this.currentFunc = ctx.funcName.text;
         this.functions.set(ctx.funcName.text, this.functions.size);
 
-        for (var i = 0; i < this.funcReplace.length; i++) {
+        for (let i = 0; i < this.funcReplace.length; i++) {
             if (this.bodySection[this.funcReplace[i]] == this.currentFunc) {
                 this.bodySection[this.funcReplace[i]] = this.functions.get(this.bodySection[this.funcReplace[i]]);
                 this.funcReplace.splice(i, 1);
@@ -428,10 +428,10 @@ class MyVisitor extends BigDataListener {
     exitFunctionDefinition(ctx) {
         this.wat += ")\n";
         this.bodySection.push(11);
-        var local_wat = "";
-        var local_wasm = [];
-        var params_wat = "";
-        var params_wasm = [];
+        let local_wat = "";
+        let local_wasm = [];
+        let params_wat = "";
+        let params_wasm = [];
         this.variables.get(ctx.funcName.text).forEach(function (value, key, map) {
             if (!value[2]) {
                 local_wat += ("(local " + value[1].wat + ")\n");
@@ -442,10 +442,10 @@ class MyVisitor extends BigDataListener {
             }
         });
         this.bodySection[this.bodySectionlength - 1] = (local_wasm.length / 2);
-        for (var i = 0; i < local_wasm.length; i++) {
+        for (let i = 0; i < local_wasm.length; i++) {
             this.bodySection.splice(this.bodySectionlength + i, 0, local_wasm[i]);
         }
-        for (var i = 0; i < this.funcReplace.length; i++)
+        for (let i = 0; i < this.funcReplace.length; i++)
             this.funcReplace[i] = this.funcReplace[i] + local_wasm.length;
 
         this.typeSection[2]++;
@@ -511,9 +511,9 @@ class MyVisitor extends BigDataListener {
     }
 
     getLEB128(int) {
-        var size = Math.ceil(Math.log2(int.length));
-        var leb = [];
-        var running = true;
+        let size = Math.ceil(Math.log2(int.length));
+        let leb = [];
+        let running = true;
         while (running) {
             let temp = int & 127;
             if (int < 0)
