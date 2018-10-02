@@ -56,6 +56,7 @@ expression
     |   LONG                                    #Long
     |   FLOAT                                   #Float
     |   DOUBLE                                  #Double
+    |   BOOLEANLITERAL                          #Boolean
     |	varName=IDENTIFIER                      #Variable
     |	functionCall                            #FuncCallExpression
     //|   txt=STRING                              #String
@@ -120,6 +121,7 @@ LONGTYPE: 'Long';
 FLOATTYPE: 'Float';
 DOUBLETYPE: 'Double';
 
+BOOLEANLITERAL: 'true' | 'false';
 IDENTIFIER: [a-zA-Z][a-zA-Z0-9]*;
 
 INTEGER: ('+' | '-')? [0-9]+;

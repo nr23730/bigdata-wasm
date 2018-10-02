@@ -245,6 +245,15 @@ BigDataListener.prototype.exitNEQ = function (ctx) {
 };
 
 
+// Enter a parse tree produced by BigDataParser#Boolean.
+BigDataListener.prototype.enterBoolean = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#Boolean.
+BigDataListener.prototype.exitBoolean = function (ctx) {
+};
+
+
 // Enter a parse tree produced by BigDataParser#Plus.
 BigDataListener.prototype.enterPlus = function (ctx) {
 };

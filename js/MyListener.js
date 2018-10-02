@@ -189,9 +189,18 @@ class MyVisitor extends BigDataListener {
     }
 
     enterBoolean(ctx) {
-        this.wat += this.typeStack.pop().wat + ".const " + ctx.getText() + "\n";
+        let value = -1;
+        switch (ctx.getText()) {
+            case "true":
+                value = 1;
+                break;
+            case "false":
+                value = 0;
+                break;
+        }
+        this.wat += "i32.const " + value + "\n";
         this.bodySection.push(65);
-        this.bodySection.push(parseInt(ctx.getText()));
+        this.bodySection.push(value);
         this.typeStack.push(Types.Boolean);
     }
 
@@ -299,6 +308,10 @@ class MyVisitor extends BigDataListener {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
+                case Types.Boolean:
+                    this.wat += type.wat + ".eq\n";
+                    this.bodySection.push(70);
+                    break;
                 case Types.Int:
                     this.wat += type.wat + ".eq\n";
                     this.bodySection.push(70);
@@ -324,6 +337,10 @@ class MyVisitor extends BigDataListener {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
             switch (type) {
+                case Types.Boolean:
+                    this.wat += type.wat + ".ne\n";
+                    this.bodySection.push(71);
+                    break;
                 case Types.Int:
                     this.wat += type.wat + ".ne\n";
                     this.bodySection.push(71);
@@ -360,7 +377,7 @@ class MyVisitor extends BigDataListener {
     }
 
     enterVariable(ctx) {
-        this.typeStack.push(Types.Int);
+        this.typeStack.push(this.getVarType(ctx.varName.text));
         this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(32);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
@@ -368,13 +385,13 @@ class MyVisitor extends BigDataListener {
     }
 
     exitVarDeclaration(ctx) {
-        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getVarType(ctx.type.text), false]);
+        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), false]);
         if (ctx.expr != null)
             this.exitAssignment(ctx);
     }
 
     exitVarHanding(ctx) {
-        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getVarType(ctx.type.text), true]);
+        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), true]);
     };
 
     exitAssignment(ctx) {
@@ -457,8 +474,8 @@ class MyVisitor extends BigDataListener {
         this.functionSection.push(this.functionSection[2] - 1);
 
         if (ctx.type) {
-            this.typeSection.push(1, this.getVarType(ctx.type.text).wasm);
-            this.wat = this.wat.replace("(result " + this.currentFunc + ")", "(result " + this.getVarType(ctx.type.text).wat + ")");
+            this.typeSection.push(1, this.getTypeObject(ctx.type.text).wasm);
+            this.wat = this.wat.replace("(result " + this.currentFunc + ")", "(result " + this.getTypeObject(ctx.type.text).wat + ")");
         } else {
             this.typeSection.push(0);
             this.wat = this.wat.replace("(result " + this.currentFunc + ")", "");
@@ -484,7 +501,7 @@ class MyVisitor extends BigDataListener {
         //this.wat += "br_if $label$0\n)\n";
     }
 
-    getVarType(type) {
+    getTypeObject(type) {
         switch (type) {
             case "Boolean":
                 return Types.Boolean;
@@ -531,6 +548,11 @@ class MyVisitor extends BigDataListener {
 
     getVarIndex(ctx) {
         return this.variables.get(this.currentFunc).get(ctx)[0];
+    }
+
+    getVarType(ctx) {
+        console.log(this.variables.get(this.currentFunc).get(ctx));
+        return this.variables.get(this.currentFunc).get(ctx)[1];
     }
 
     getWasm() {
