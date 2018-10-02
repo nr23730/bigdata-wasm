@@ -168,14 +168,14 @@ class MyVisitor extends BigDataListener {
     }
 
     enterLong(ctx) {
-        this.wat += "i64.const " + ctx.getText() + "\n";
+        this.wat += "i64.const " + ctx.getText().replace("L", "") + "\n";
         this.bodySection.push(66);
         this.bodySection = this.bodySection.concat(this.getLEB128(parseInt(ctx.getText())));
         this.typeStack.push(Types.Long);
     }
 
     enterFloat(ctx) {
-        this.wat += "f32.const " + ctx.getText() + "\n";
+        this.wat += "f32.const " + ctx.getText().replace("F", "") + "\n";
         this.bodySection.push(67);
         this.bodySection.push(parseInt(ctx.getText()));
         this.typeStack.push(Types.Float);
