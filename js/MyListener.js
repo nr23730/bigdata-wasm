@@ -65,12 +65,12 @@ class MyVisitor extends BigDataListener {
         if (type == this.typeStack.pop()) {
             switch (type) {
                 case Types.Int:
-                    this.wat += type.wat + ".div_u\n";
-                    this.bodySection.push(110);
+                    this.wat += type.wat + ".div_s\n";
+                    this.bodySection.push(109);
                     break;
                 case Types.Long:
-                    this.wat += type.wat + ".div_u\n";
-                    this.bodySection.push(128);
+                    this.wat += type.wat + ".div_s\n";
+                    this.bodySection.push(127);
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".div\n";
