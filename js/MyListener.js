@@ -510,6 +510,7 @@ class MyVisitor extends BigDataListener {
             "end\n";
         this.bodySection = this.bodySection.concat(this.loophelper_wasm.pop());
         this.bodySection.push(0x1a);
+        this.typeStack.pop();
         this.bodySection = this.bodySection.concat(this.loophelper_wasm.pop());
         this.bodySection.push(0x0d, 0x00, 0x0b, 0x0b);
     }
