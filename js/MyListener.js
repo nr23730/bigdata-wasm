@@ -49,7 +49,10 @@ class MyVisitor extends BigDataListener {
         this.functions = new Map();
         this.funcReplace = [];
         this.typeStack = [];
-
+        this.temp_wat = "";
+        this.temp_wasm = [];
+        this.loophelper_wat = [];
+        this.loophelper_wasm = [];
     }
 
     enterInput(ctx) {
@@ -502,17 +505,38 @@ class MyVisitor extends BigDataListener {
         //this.wat += "br_if $label$0\n)\n";
     }
 
-    enterWhileloop(ctx) {
-        this.wat += "block $b0\n" +
-            "i32.eqz\n" +
+    enterWhileBool(ctx) {
+        this.temp_wat = this.wat;
+        this.wat = "";
+        this.temp_wasm = this.bodySection;
+        this.bodySection = [];
+    }
+
+    exitWhileBool(ctx) {
+        this.loophelper_wat.push(this.wat);
+        this.loophelper_wasm.push(this.bodySection);
+        this.wat = this.temp_wat + this.loophelper_wat[this.loophelper_wat.length - 1];
+        this.bodySection = this.temp_wasm.concat(this.loophelper_wasm[this.loophelper_wasm.length - 1]);
+        this.temp_wat = "";
+        this.temp_wasm = [];
+        this.wat += "i32.eqz\n" +
             "br_if $b0\n" +
             "loop $l0\n";
+        this.bodySection.push(0x45, 0x0d, 0x00, 0x03, 0x40);
+    }
+
+    enterWhileloop(ctx) {
+        this.wat += "block $b0\n";
+        this.bodySection.push(0x02, 0x40);
     }
 
     exitWhileloop(ctx) {
+        this.wat += this.loophelper_wat.pop();
         this.wat += "br_if $l0\n" +
             "end\n" +
             "end\n";
+        this.bodySection = this.bodySection.concat(this.loophelper_wasm.pop());
+        this.bodySection.push(0x0d, 0x00, 0x0b, 0x0b);
     }
 
     enterDowhileloop(ctx) {

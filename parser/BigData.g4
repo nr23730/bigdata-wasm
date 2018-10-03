@@ -40,9 +40,12 @@ elseBlock
     : block
     ;
 
+whileBool
+    : expression
+    ;
 
 whileloop
-    : 'while' '(' expression ')' block
+    : 'while' '(' whileBool ')' block
     ;
 
 dowhileloop

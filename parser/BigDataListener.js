@@ -74,6 +74,15 @@ BigDataListener.prototype.exitElseBlock = function (ctx) {
 };
 
 
+// Enter a parse tree produced by BigDataParser#whileBool.
+BigDataListener.prototype.enterWhileBool = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#whileBool.
+BigDataListener.prototype.exitWhileBool = function (ctx) {
+};
+
+
 // Enter a parse tree produced by BigDataParser#whileloop.
 BigDataListener.prototype.enterWhileloop = function (ctx) {
 };
