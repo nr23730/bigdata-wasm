@@ -74,12 +74,12 @@ BigDataListener.prototype.exitElseBlock = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#whileBool.
-BigDataListener.prototype.enterWhileBool = function (ctx) {
+// Enter a parse tree produced by BigDataParser#loopBool.
+BigDataListener.prototype.enterLoopBool = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#whileBool.
-BigDataListener.prototype.exitWhileBool = function (ctx) {
+// Exit a parse tree produced by BigDataParser#loopBool.
+BigDataListener.prototype.exitLoopBool = function (ctx) {
 };
 
 
@@ -101,12 +101,30 @@ BigDataListener.prototype.exitDowhileloop = function (ctx) {
 };
 
 
+// Enter a parse tree produced by BigDataParser#forExpression.
+BigDataListener.prototype.enterForExpression = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#forExpression.
+BigDataListener.prototype.exitForExpression = function (ctx) {
+};
+
+
 // Enter a parse tree produced by BigDataParser#forloop.
 BigDataListener.prototype.enterForloop = function (ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#forloop.
 BigDataListener.prototype.exitForloop = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#PreIncrement.
+BigDataListener.prototype.enterPreIncrement = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#PreIncrement.
+BigDataListener.prototype.exitPreIncrement = function (ctx) {
 };
 
 
@@ -125,6 +143,15 @@ BigDataListener.prototype.enterFuncCallExpression = function (ctx) {
 
 // Exit a parse tree produced by BigDataParser#FuncCallExpression.
 BigDataListener.prototype.exitFuncCallExpression = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#PostDecrement.
+BigDataListener.prototype.enterPostDecrement = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#PostDecrement.
+BigDataListener.prototype.exitPostDecrement = function (ctx) {
 };
 
 
@@ -209,6 +236,15 @@ BigDataListener.prototype.exitFloat = function (ctx) {
 };
 
 
+// Enter a parse tree produced by BigDataParser#Parenthesis.
+BigDataListener.prototype.enterParenthesis = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#Parenthesis.
+BigDataListener.prototype.exitParenthesis = function (ctx) {
+};
+
+
 // Enter a parse tree produced by BigDataParser#GEQ.
 BigDataListener.prototype.enterGEQ = function (ctx) {
 };
@@ -236,21 +272,21 @@ BigDataListener.prototype.exitLong = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#PARENTHESIS.
-BigDataListener.prototype.enterPARENTHESIS = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#PARENTHESIS.
-BigDataListener.prototype.exitPARENTHESIS = function (ctx) {
-};
-
-
 // Enter a parse tree produced by BigDataParser#LEQ.
 BigDataListener.prototype.enterLEQ = function (ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#LEQ.
 BigDataListener.prototype.exitLEQ = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#PostIncrement.
+BigDataListener.prototype.enterPostIncrement = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#PostIncrement.
+BigDataListener.prototype.exitPostIncrement = function (ctx) {
 };
 
 
@@ -269,6 +305,15 @@ BigDataListener.prototype.enterBoolean = function (ctx) {
 
 // Exit a parse tree produced by BigDataParser#Boolean.
 BigDataListener.prototype.exitBoolean = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#PreDecrement.
+BigDataListener.prototype.enterPreDecrement = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#PreDecrement.
+BigDataListener.prototype.exitPreDecrement = function (ctx) {
 };
 
 

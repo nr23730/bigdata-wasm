@@ -498,21 +498,46 @@ class MyVisitor extends BigDataListener {
     }
 
     enterForloop(ctx) {
-        //this.wat += "(loop $label$0\n";
+        this.wat += "block $b0\n";
+        this.bodySection.push(0x02, 0x40);
     }
 
     exitForloop(ctx) {
-        //this.wat += "br_if $label$0\n)\n";
+        this.wat += this.loophelper_wat.pop() + "drop\n";
+        this.wat += this.loophelper_wat.pop();
+        this.wat += "br_if $l0\n" +
+            "end\n" +
+            "end\n";
+        this.bodySection = this.bodySection.concat(this.loophelper_wasm.pop());
+        this.bodySection.push(0x1a);
+        this.bodySection = this.bodySection.concat(this.loophelper_wasm.pop());
+        this.bodySection.push(0x0d, 0x00, 0x0b, 0x0b);
     }
 
-    enterWhileBool(ctx) {
+    enterForExpression(ctx) {
         this.temp_wat = this.wat;
         this.wat = "";
         this.temp_wasm = this.bodySection;
         this.bodySection = [];
     }
 
-    exitWhileBool(ctx) {
+    exitForExpression(ctx) {
+        this.loophelper_wat.push(this.wat);
+        this.loophelper_wasm.push(this.bodySection);
+        this.wat = this.temp_wat;
+        this.bodySection = this.temp_wasm;
+        this.temp_wat = "";
+        this.temp_wasm = [];
+    }
+
+    enterLoopBool(ctx) {
+        this.temp_wat = this.wat;
+        this.wat = "";
+        this.temp_wasm = this.bodySection;
+        this.bodySection = [];
+    }
+
+    exitLoopBool(ctx) {
         this.loophelper_wat.push(this.wat);
         this.loophelper_wasm.push(this.bodySection);
         this.wat = this.temp_wat + this.loophelper_wat[this.loophelper_wat.length - 1];
@@ -548,6 +573,40 @@ class MyVisitor extends BigDataListener {
         this.wat += "br_if $l0\n" +
             "end\n";
         this.bodySection.push(0x0d, 0x00, 0x0b);
+    }
+
+    exitPreDecrement(ctx) {
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "i32.const 1\n" +
+            "i32.sub\n" +
+            "tee_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6b, 0x22, this.getVarIndex(ctx.varName.text));
+    }
+
+    exitPreIncrement(ctx) {
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "i32.const 1\n" +
+            "i32.add\n" +
+            "tee_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6a, 0x22, this.getVarIndex(ctx.varName.text));
+    }
+
+    exitPostDecrement(ctx) {
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "i32.const 1\n" +
+            "i32.sub\n" +
+            "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6b, 0x21, this.getVarIndex(ctx.varName.text));
+    }
+
+    exitPostIncrement(ctx) {
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "i32.const 1\n" +
+            "i32.add\n" +
+            "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6a, 0x21, this.getVarIndex(ctx.varName.text));
     }
 
     getTypeObject(type) {

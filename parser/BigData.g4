@@ -1,63 +1,67 @@
 grammar BigData;
 
-input:
-    programPart+ EOF
+input
+    :   programPart+ EOF
     ;
 
 
 programPart
-    : //varDeclaration      #ProgPartVarDeclaration
-	functionDefinition	#ProgPartFunctionDefinition
+    :   //varDeclaration      #ProgPartVarDeclaration
+	    functionDefinition	#ProgPartFunctionDefinition
 	;
 			
 statement
-    : varDeclaration
-	| assignment
-	| branch
-	| whileloop
-	| forloop
-	| dowhileloop
-	| functionCall
-	//| println
+    :   varDeclaration
+	|   assignment
+	|   branch
+	|   whileloop
+	|   forloop
+	|   dowhileloop
+	|   functionCall
+  //|   println
 	;
 
 //println: argument=expression;
 
 branch
-    : 'if' '(' condition=expression ')' onTrue=trueBlock 'else' onFalse=elseBlock
+    :   'if' '(' condition=expression ')' onTrue=trueBlock 'else' onFalse=elseBlock
     ;
 
 block
-    : statement
-    | '{' statementList '}'
+    :   statement
+    |   '{' statementList '}'
     ;
 
 trueBlock
-    : block
+    :   block
     ;
 
 elseBlock
-    : block
+    :   block
     ;
 
-whileBool
-    : expression
+loopBool
+    :   expression
     ;
 
 whileloop
-    : 'while' '(' whileBool ')' block
+    :   'while' '(' loopBool ')' block
     ;
 
 dowhileloop
-    : 'do' block 'while' '(' expression ')'
+    :   'do' block 'while' '(' expression ')'
+    ;
+
+forExpression
+    :   expression
     ;
 
 forloop
-    : 'for' '(' (varDeclaration | assignment) ';' expression ';' assignment ')' block
+    :   'for' '(' (varDeclaration | assignment) ';' loopBool ';' forExpression ')' block
     ;
 
 expression
-    :   left=expression '/' right=expression      #Div
+    :   left=expression '/' right=expression    #Div
     |	left=expression '*' right=expression    #Mult
     |	left=expression '-' right=expression    #Minus
     |	left=expression '+' right=expression    #Plus
@@ -68,7 +72,7 @@ expression
     |   BOOLEANLITERAL                          #Boolean
     |	varName=IDENTIFIER                      #Variable
     |	functionCall                            #FuncCallExpression
-    //|   txt=STRING                              #String
+  //|   txt=STRING                              #String
 	|   left=expression '<' right=expression    #LT
     |   left=expression '<=' right=expression   #LEQ
     |   left=expression '>' right=expression    #GT
@@ -77,65 +81,69 @@ expression
     |   left=expression '!=' right=expression   #NEQ
     |   left=expression '&&' right=expression   #LAND
     |   left=expression '||' right=expression   #LOR
-    |   '(' expression ')'                      #PARENTHESIS
+    |   '(' expression ')'                      #Parenthesis
+    |   varName=IDENTIFIER '++'                 #PostIncrement
+    |   '++' varName=IDENTIFIER                 #PreIncrement
+    |   varName=IDENTIFIER '--'                 #PostDecrement
+    |   '--' varName=IDENTIFIER                 #PreDecrement
     ;
 			
 varDeclaration
-    : 'var' varName=IDENTIFIER ':' type=TYPES '=' expr=expression
+    :   'var' varName=IDENTIFIER ':' type=TYPES '=' expr=expression
     |   'var' varName=IDENTIFIER ':' type=TYPES
     ;
 			
 varHanding
-    : varName=IDENTIFIER ':' type=TYPES
+    :   varName=IDENTIFIER ':' type=TYPES
     ;
 
 assignment
-    : varName=IDENTIFIER '=' expr=expression
+    :   varName=IDENTIFIER '=' expr=expression
     ;
 
 functionDefinition
-    : 'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' ':' type=TYPES '{' statements=statementList 'return' returnValue=expression'}'
-    | 'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' '{' statements=statementList '}'
+    :   'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' ':' type=TYPES '{' statements=statementList 'return' returnValue=expression'}'
+    |   'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' '{' statements=statementList '}'
     ;
 
 parameterDeclaration
-    : declarations+=varHanding (',' declarations+=varHanding)*
+    :   declarations+=varHanding (',' declarations+=varHanding)*
     ;
 
 statementList
-    : (statement)*
+    :   (statement)*
     ;
 
 functionCall
-    : funcName=IDENTIFIER '(' arguments=expressionList* ')'
+    :   funcName=IDENTIFIER '(' arguments=expressionList* ')'
     ;
 
 expressionList
-    : expressions+=expression (',' expressions+=expression)*
+    :   expressions+=expression (',' expressions+=expression)*
     ;
 
 TYPES
-    : INTTYPE
-    //| STRINGTYPE
-    | BOOLTYPE
-    | LONGTYPE
-    | FLOATTYPE
-    | DOUBLETYPE
+    :   INTTYPE
+  //|   STRINGTYPE
+    |   BOOLTYPE
+    |   LONGTYPE
+    |   FLOATTYPE
+    |   DOUBLETYPE
     ;
 
-//STRINGTYPE: 'String';
-BOOLTYPE: 'Boolean';
-INTTYPE: 'Int';
-LONGTYPE: 'Long';
-FLOATTYPE: 'Float';
+//STRINGTYPE:   'String';
+BOOLTYPE:   'Boolean';
+INTTYPE:    'Int';
+LONGTYPE:   'Long';
+FLOATTYPE:  'Float';
 DOUBLETYPE: 'Double';
 
 BOOLEANLITERAL: 'true' | 'false';
 IDENTIFIER: [a-zA-Z][a-zA-Z0-9]*;
 
-INTEGER: ('+' | '-')? [0-9]+;
-LONG: INTEGER 'L';
-FLOAT: DOUBLE 'F';
+INTEGER:    ('+' | '-')? [0-9]+;
+LONG:   INTEGER 'L';
+FLOAT:  DOUBLE 'F';
 DOUBLE: ('+' | '-')? ([0-9]* '.')? [0-9]+ (('e'|'E') [0-9]+)*;
 STRING: '"' .*? '"';
 
