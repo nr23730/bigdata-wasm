@@ -16,6 +16,7 @@ statement
 	| branch
 	| whileloop
 	| forloop
+	| dowhileloop
 	| functionCall
 	//| println
 	;
@@ -39,8 +40,13 @@ elseBlock
     : block
     ;
 
+
 whileloop
     : 'while' '(' expression ')' block
+    ;
+
+dowhileloop
+    : 'do' block 'while' '(' expression ')'
     ;
 
 forloop

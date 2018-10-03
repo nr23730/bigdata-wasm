@@ -502,6 +502,30 @@ class MyVisitor extends BigDataListener {
         //this.wat += "br_if $label$0\n)\n";
     }
 
+    enterWhileloop(ctx) {
+        this.wat += "block $b0\n" +
+            "i32.eqz\n" +
+            "br_if $b0\n" +
+            "loop $l0\n";
+    }
+
+    exitWhileloop(ctx) {
+        this.wat += "br_if $l0\n" +
+            "end\n" +
+            "end\n";
+    }
+
+    enterDowhileloop(ctx) {
+        this.wat += "loop $l0\n";
+        this.bodySection.push(0x03, 0x40);
+    }
+
+    exitDowhileloop(ctx) {
+        this.wat += "br_if $l0\n" +
+            "end\n";
+        this.bodySection.push(0x0d, 0x00, 0x0b);
+    }
+
     getTypeObject(type) {
         switch (type) {
             case "Boolean":
