@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BigData WebAssembly</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script type="text/javascript" src="lib/require.js"></script>
+</head>
+<body>
+<p>Other Examples:<br/>
+<ul>
+    <li><a href="index.html">Your code</a></li>
+    <li><a href="fib_rec.html">Fibonacci (recursive)</a></li>
+    <li><a href="fib_it.html">Fibonacci (iterative)</a></li>
+</ul>
+</p>
+<div id="inputs" style="float:left;">
+    <input id="n-value" type="text" value="10"/><br/>
+    Kotlin code to be executed in WebAssembly:<br/>
+    <textarea id="code" style="width:350px;height:150px" disabled="disabled">
+fun main(n : Int) : Int {
+   var ret : Int = 0
+   if(n <= 1)
+      ret = n
+   else
+      ret = main(n - 1) + main(n - 2)
+   return ret
+}
+</textarea> <br/>
+    JavaScript code running in comparison:<br/>
+    <textarea style="width:350px;height:150px" disabled="disabled">
+function fib(n) {
+   let ret = 0;
+   if(n <= 1)
+      ret = n;
+   else
+      ret = fib(n - 1) + fib(n - 2);
+   return ret;
+}
+</textarea>
+
+    <br/>
+    <button id="parse">compile + execute</button>
+    <br/>
+    Note: Clicking on the button will make the compiler run with the code above.<br/>
+    If you just want to run the already compiled function again,<br/>
+    please open your JavaScript console and type: "main(yourvalue)".
+    <br/><br/>
+    <div id="result" style="clear:both;font-weight:bold;"></div>
+    <div id="result2" style="clear:both;font-weight:bold;"></div>
+</div>
+<script type="text/javascript">
+    let main;
+    let fib = function (n) {
+        let ret = 0;
+        if (n <= 1)
+            ret = n;
+        else
+            ret = fib(n - 1) + fib(n - 2);
+        return ret;
+    };
+
+    let antlr4 = require('antlr4/index');
+    let BigDataLexer = require('parser/BigDataLexer');
+    let BigDataParser = require('parser/BigDataParser');
+    let MyListener = require('js/MyListener');
+    document.getElementById("parse").addEventListener("click", function () {
+        let n = document.getElementById("n-value").value;
+        let wasm_d1 = new Date().getTime();
+        console.log("WebAssembly-Compiling started at:" + wasm_d1);
+        let input = document.getElementById("code").value;
+        let chars = new antlr4.InputStream(input);
+        let lexer = new BigDataLexer.BigDataLexer(chars);
+        let tokens = new antlr4.CommonTokenStream(lexer);
+        let parser = new BigDataParser.BigDataParser(tokens);
+        parser.buildParseTrees = true;
+        let tree = parser.input();
+        let listener = new MyListener(parser);
+        antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
+        let wasmModule = new WebAssembly.Module(new Uint8Array(listener.getWasm()));
+        let wasmInstance = new WebAssembly.Instance(wasmModule);
+        main = wasmInstance.exports.main;
+        document.getElementById('result').innerText = "WebAssembly-Output:\n" + main(n);
+        let wasm_d2 = new Date().getTime();
+        console.log("WebAssembly compile&run finished at:" + wasm_d2);
+        console.log("WebAssembly compile&run took:" + (wasm_d2 - wasm_d1) + "ms");
+        let js_d1 = new Date().getTime();
+        console.log("JavaScript execution started at:" + js_d1);
+        document.getElementById('result2').innerText = "JavaScript-Output:\n" + fib(n);
+        let js_d2 = new Date().getTime();
+        console.log("JavaScript execution finished at:" + wasm_d2);
+        console.log("JavaScript execution execution took:" + (js_d2 - js_d1) + "ms");
+        let wasmtime = wasm_d2 - wasm_d1;
+        let jstime = js_d2 - js_d1;
+        if (wasmtime < jstime)
+            alert("WebAssembly won!\n\nWebAssembly: " + wasmtime + "ms\nJavaScript: " + jstime + "ms");
+        else
+            alert("JavaScript won!\n\nWebAssembly: " + wasmtime + "ms\nJavaScript: " + jstime + "ms");
+    });
+</script>
+</body>
+</html>

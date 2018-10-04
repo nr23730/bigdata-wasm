@@ -6,8 +6,16 @@
     <script type="text/javascript" src="lib/require.js"></script>
 </head>
 <body>
+<p>Other Examples:<br/>
+<ul>
+    <li><a href="index.html">Your code</a></li>
+    <li><a href="fib_rec.html">Fibonacci (recursive)</a></li>
+    <li><a href="fib_it.html">Fibonacci (iterative)</a></li>
+</ul>
+</p>
 <div id="inputs" style="float:left;">
-<textarea id="code" style="width:250px;height:200px">
+    <input id="n-value" type="text" value="10"/><br/>
+    <textarea id="code" style="width:250px;height:200px">
 fun main(mul : Int) : Int {
    var a : Int
    a = 4
@@ -21,44 +29,45 @@ fun main(mul : Int) : Int {
    }
    return d
 }
-
 </textarea>
     <br/>
     <button id="parse">compile + execute</button>
     <br/>
-    Note: The default value handed to the function is 10. So the expected result for the given example is 64.<br/>
-    You can also use other values using the console built into your browser by calling "$ main(10)".
+    Note: Clicking on the button will make the compiler run with the code above.<br/>
+    If you just want to run the already compiled function again,<br/>
+    please open your JavaScript console and type: "main(yourvalue)".
+    <br/><br/>
+    <div id="result" style="clear:both;font-weight:bold;"></div>
 </div>
 <div id="outputs" style="float:left">
     <div id="wat" style="float:left;margin-left:10px"></div>
     <div id="wasm" style="float:left;width:400px;margin-left:10px;"></div>
 </div>
-<div id="result" style="clear:both"></div>
 <script type="text/javascript">
-    var main;
+    let main;
 
-    var antlr4 = require('antlr4/index');
-    var BigDataLexer = require('parser/BigDataLexer');
-    var BigDataParser = require('parser/BigDataParser');
-    var MyListener = require('js/MyListener');
+    let antlr4 = require('antlr4/index');
+    let BigDataLexer = require('parser/BigDataLexer');
+    let BigDataParser = require('parser/BigDataParser');
+    let MyListener = require('js/MyListener');
     document.getElementById("parse").addEventListener("click", function () {
-        var input = document.getElementById("code").value;
-        var chars = new antlr4.InputStream(input);
-        var lexer = new BigDataLexer.BigDataLexer(chars);
-        var tokens = new antlr4.CommonTokenStream(lexer);
-        var parser = new BigDataParser.BigDataParser(tokens);
+        let input = document.getElementById("code").value;
+        let chars = new antlr4.InputStream(input);
+        let lexer = new BigDataLexer.BigDataLexer(chars);
+        let tokens = new antlr4.CommonTokenStream(lexer);
+        let parser = new BigDataParser.BigDataParser(tokens);
         parser.buildParseTrees = true;
-        var tree = parser.input();
-        var listener = new MyListener(parser);
+        let tree = parser.input();
+        let listener = new MyListener(parser);
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
         document.getElementById('wat').innerText = "WebAssembly-Text (WAT):\n\n" + listener.wat;
         wasm = listener.getWasm();
         console.log(wasm);
         document.getElementById('wasm').innerText = "WebAssembly-Bytecode (WASM):\n\n" + wasm;
-        var wasmModule = new WebAssembly.Module(new Uint8Array(wasm));
-        var wasmInstance = new WebAssembly.Instance(wasmModule);
+        let wasmModule = new WebAssembly.Module(new Uint8Array(wasm));
+        let wasmInstance = new WebAssembly.Instance(wasmModule);
         main = wasmInstance.exports.main;
-        document.getElementById('result').innerText = "Output:\n\n" + main(10);
+        document.getElementById('result').innerText = "Output:\n\n" + main(document.getElementById("n-value").value);
     });
 </script>
 </body>
