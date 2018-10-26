@@ -1,5 +1,6 @@
 const BigDataListener = require('../parser/BigDataListener').BigDataListener;
 
+//Create an object containing instructions for data types in text and byte code representation
 class DataType {
     constructor(wat, wasm) {
         this.wat = wat;
@@ -7,6 +8,7 @@ class DataType {
     }
 }
 
+//Assign data types and their representation in wat/wasm
 const Types = {
     Boolean: new DataType("i32", 0x7f),
     Int: new DataType("i32", 0x7f),
@@ -41,16 +43,30 @@ class MyVisitor extends BigDataListener {
             0x00, //section size calculated afterwards
             0x00, //number of functions inserted afterwards
         ];
+
+        //this map will contain maps with variables of specified functions
         this.variables = new Map();
+
+        //TODO: currently: representing current function for var scopes
         this.currentFunc = "";
+
+        //TODO: currently: representing numer of functions
         this.exportCounter = 0;
         this.exportSection = [0x07, 0x00, 0x00];
+
+        //temporary variable for fixup of length values
         this.bodySectionlength = 0;
         this.functions = new Map();
         this.funcReplace = [];
+
+        //type stack to ensure type safeness
         this.typeStack = [];
+
+        //cache for temporary instruction storing
         this.temp_wat = "";
         this.temp_wasm = [];
+
+        //store boolean condition of loops
         this.loophelper_wat = [];
         this.loophelper_wasm = [];
     }
@@ -64,8 +80,10 @@ class MyVisitor extends BigDataListener {
     }
 
     exitDiv(ctx) {
+        //check if both operands have the same type
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".div_s\n";
@@ -84,6 +102,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0xa3);
                     break;
             }
+            //result will be the same type as input
             this.typeStack.push(type);
         }
     }
@@ -91,6 +110,7 @@ class MyVisitor extends BigDataListener {
     exitMult(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".mul\n";
@@ -109,6 +129,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0xa2);
                     break;
             }
+            //result will be the same type as input
             this.typeStack.push(type);
         }
     }
@@ -116,6 +137,7 @@ class MyVisitor extends BigDataListener {
     exitPlus(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".add\n";
@@ -134,6 +156,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0xa0);
                     break;
             }
+            //result will be the same type as input
             this.typeStack.push(type);
         }
     }
@@ -141,6 +164,7 @@ class MyVisitor extends BigDataListener {
     exitMinus(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".sub\n";
@@ -159,40 +183,54 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0xa1);
                     break;
             }
+            //result will be the same type as input
             this.typeStack.push(type);
         }
     }
 
     enterInteger(ctx) {
+        //put instruction for 32bit integer on stack
         this.wat += "i32.const " + ctx.getText() + "\n";
         this.bodySection.push(0x41);
+
+        //put the integer on stack
         this.bodySection = this.bodySection.concat(this.getLEB128(ctx.getText()));
         this.typeStack.push(Types.Int);
     }
 
     enterLong(ctx) {
+        //put instruction for 64bit integer on stack
         this.wat += "i64.const " + ctx.getText().replace("L", "") + "\n";
         this.bodySection.push(0x42);
+
+        //put the long on stack
         this.bodySection = this.bodySection.concat(this.getLEB128(parseInt(ctx.getText())));
         this.typeStack.push(Types.Long);
     }
 
     enterFloat(ctx) {
+        //put instruction for 32bit float on stack
         let text = ctx.getText().replace("F", "");
         this.wat += "f32.const " + text + "\n";
+
+        //put the float on stack
         this.bodySection.push(0x43);
         this.bodySection = this.bodySection.concat([].slice.call(this.getFloat32(text)));
         this.typeStack.push(Types.Float);
     }
 
     enterDouble(ctx) {
+        //put instruction for 64bit float on stack
         this.wat += "f64.const " + ctx.getText() + "\n";
         this.bodySection.push(0x44);
+
+        //put the double on stack
         this.bodySection = this.bodySection.concat([].slice.call(this.getFloat64(ctx.getText())));
         this.typeStack.push(Types.Double);
     }
 
     enterBoolean(ctx) {
+        //switch atomar values to 0/1
         let value = -1;
         switch (ctx.getText()) {
             case "true":
@@ -202,8 +240,12 @@ class MyVisitor extends BigDataListener {
                 value = 0;
                 break;
         }
+
+        //put instruction for boolean on stack
         this.wat += "i32.const " + value + "\n";
         this.bodySection.push(0x41);
+
+        //put the boolean on stack
         this.bodySection.push(value);
         this.typeStack.push(Types.Boolean);
     }
@@ -211,6 +253,7 @@ class MyVisitor extends BigDataListener {
     exitLT(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".lt_s\n";
@@ -229,6 +272,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0x63);
                     break;
             }
+            //result will be boolean
             this.typeStack.push(Types.Boolean);
         }
     }
@@ -236,6 +280,7 @@ class MyVisitor extends BigDataListener {
     exitLEQ(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".le_s\n";
@@ -254,6 +299,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0x65);
                     break;
             }
+            //result will be boolean
             this.typeStack.push(Types.Boolean);
         }
     }
@@ -261,6 +307,7 @@ class MyVisitor extends BigDataListener {
     exitGT(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".gt_s\n";
@@ -279,6 +326,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0x64);
                     break;
             }
+            //result will be boolean
             this.typeStack.push(Types.Boolean);
         }
     }
@@ -286,6 +334,7 @@ class MyVisitor extends BigDataListener {
     exitGEQ(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Int:
                     this.wat += type.wat + ".ge_s\n";
@@ -304,6 +353,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0x66);
                     break;
             }
+            //result will be boolean
             this.typeStack.push(Types.Boolean);
         }
     }
@@ -311,6 +361,7 @@ class MyVisitor extends BigDataListener {
     exitEQ(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Boolean:
                     this.wat += type.wat + ".eq\n";
@@ -333,6 +384,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0x61);
                     break;
             }
+            //result will be boolean
             this.typeStack.push(Types.Boolean);
         }
     }
@@ -340,6 +392,7 @@ class MyVisitor extends BigDataListener {
     exitNEQ(ctx) {
         let type = this.typeStack.pop();
         if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
             switch (type) {
                 case Types.Boolean:
                     this.wat += type.wat + ".ne\n";
@@ -362,6 +415,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0x62);
                     break;
             }
+            //result will be boolean
             this.typeStack.push(Types.Boolean);
         }
     }
@@ -369,6 +423,8 @@ class MyVisitor extends BigDataListener {
     exitLAND(ctx) {
         this.wat += this.typeStack.pop().wat + ".and\n";
         this.typeStack.pop();
+
+        //result will be boolean
         this.bodySection.push(0x71);
         this.typeStack.push(Types.Boolean)
     }
@@ -376,25 +432,35 @@ class MyVisitor extends BigDataListener {
     exitLOR(ctx) {
         this.wat += this.typeStack.pop().wat + ".or\n";
         this.typeStack.pop();
+
+        //result will be boolean
         this.bodySection.push(0x72);
         this.typeStack.push(Types.Boolean)
     }
 
     enterVariable(ctx) {
+        //put variable on type stack
         this.typeStack.push(this.getVarType(ctx.varName.text));
+
+        //put instrunctino to get a local variable on stack
         this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x20);
+
+        //put var index on stack
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
 
     }
 
     exitVarDeclaration(ctx) {
+        //save new variable
         this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), false]);
+        //save value if it already has been initialized
         if (ctx.expr != null)
             this.exitAssignment(ctx);
     }
 
     exitVarHanding(ctx) {
+        //save new variable
         this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), true]);
     };
 
@@ -406,6 +472,7 @@ class MyVisitor extends BigDataListener {
     }
 
     enterTrueBlock(ctx) {
+        //brnach if integer on stack indicates so
         this.wat += "if\n";
         this.bodySection.push(0x04, 0x40);
         this.typeStack.pop();
@@ -610,6 +677,11 @@ class MyVisitor extends BigDataListener {
         this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6a, 0x21, this.getVarIndex(ctx.varName.text));
     }
 
+    /**
+     * Converts a String with a DataType into an object
+     * @param type
+     * @returns {DataType}
+     */
     getTypeObject(type) {
         switch (type) {
             case "Boolean":
@@ -632,10 +704,21 @@ class MyVisitor extends BigDataListener {
         }
     }
 
+    /**
+     * Convert strings to ASCII characters (for method names)
+     * TODO: Fix for Edge as it doesn't support TextEncoder
+     * @param string to be converted
+     * @returns {Uint8Array} with converted string
+     */
     getUInt8(string) {
         return new TextEncoder("utf-8").encode(string);
     }
 
+    /**
+     * Converts an int and long to leb128 format as its required by wasm
+     * @param int to be converted
+     * @returns {Array} value of int in leb128
+     */
     getLEB128(int) {
         let size = Math.ceil(Math.log2(int.length));
         let leb = [];
@@ -675,11 +758,12 @@ class MyVisitor extends BigDataListener {
     getWasm() {
         this.typeSection[1] = this.typeSection.length - 2; //set section length
 
-        this.functionSection[1] = this.functionSection.length - 2;
+        this.functionSection[1] = this.functionSection.length - 2; //set section length
 
-        this.codeSection = this.codeSection.concat(this.bodySection);
-        this.codeSection[1] = this.codeSection.length - 2;
+        this.codeSection = this.codeSection.concat(this.bodySection); //body section is part of the code section
+        this.codeSection[1] = this.codeSection.length - 2; //set section length
 
+        //concat all parts to a wasm binary
         return this.binaryMagic
             .concat(this.typeSection)
             .concat(this.functionSection)
