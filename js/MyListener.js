@@ -19,7 +19,6 @@ const Types = {
 
 
 class MyVisitor extends BigDataListener {
-
     constructor() {
         super();
         this.wat = "";
@@ -155,7 +154,6 @@ class MyVisitor extends BigDataListener {
 
         //put var index on stack
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
-
     }
 
     exitVarDeclaration(ctx) {
@@ -169,7 +167,7 @@ class MyVisitor extends BigDataListener {
     exitVarHanding(ctx) {
         //save new variable
         this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), true]);
-    };
+    }
 
     exitAssignment(ctx) {
         this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
@@ -520,10 +518,16 @@ class MyVisitor extends BigDataListener {
     // FUNCTION DEFINITION / FUNCTION CALL
 
     enterFunctionDefinition(ctx) {
+        //assume it will be exported / function is public
         this.exportCounter++;
+
+        //this will be the current function for var scope
         this.currentFunc = ctx.funcName.text;
+
+        //assign a new number
         this.functions.set(ctx.funcName.text, this.functions.size);
 
+        //replace placeholders calling this function with its id
         for (let i = 0; i < this.funcReplace.length; i++) {
             if (this.bodySection[this.funcReplace[i]] == this.currentFunc) {
                 this.bodySection[this.funcReplace[i]] = this.functions.get(this.bodySection[this.funcReplace[i]]);
@@ -531,7 +535,10 @@ class MyVisitor extends BigDataListener {
             }
         }
 
+        //get a new map to store vars
         this.variables.set(this.currentFunc, new Map());
+
+        //export the function
         this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n" +
             "(func $" + this.currentFunc + " (param " + this.currentFunc + ") (result " + this.currentFunc + ")\n" +
             "(local " + this.currentFunc + ")\n";
@@ -540,17 +547,24 @@ class MyVisitor extends BigDataListener {
         this.exportSection.push(0x00, this.exportCounter - 1);
         this.exportSection[2] = this.exportCounter;
         this.exportSection[1] = this.exportSection.length - 2;
+
+        //init function body
         this.bodySection.push(0x00, 0x00); //temporary length
         this.bodySectionlength = this.bodySection.length;
     }
 
     exitFunctionDefinition(ctx) {
+        //end the function
         this.wat += ")\n";
         this.bodySection.push(0x0b);
+
+        //preparations for fixing function body
         let local_wat = "";
         let local_wasm = [];
         let params_wat = "";
         let params_wasm = [];
+
+        //inserting used parameters in the correct sections
         this.variables.get(ctx.funcName.text).forEach(function (value, key, map) {
             if (!value[2]) {
                 local_wat += ("(local " + value[1].wat + ")\n");
@@ -586,12 +600,17 @@ class MyVisitor extends BigDataListener {
 
         this.wat = this.wat.replace("(param " + this.currentFunc + ")", params_wat);
         this.wat = this.wat.replace("(local " + this.currentFunc + ")\n", local_wat);
+
+        //fixup function body size
         this.bodySection[this.bodySectionlength - 2] = this.bodySection.length - this.bodySectionlength + 1;
     }
 
     exitFunctionCall(ctx) {
+        //bring the call to the stack
         this.wat += "call $" + ctx.funcName.text + "\n";
         this.bodySection.push(0x10, ctx.funcName.text);
+
+        //function name has to be replaced afterwards
         this.funcReplace.push(this.bodySection.length - 1);
     }
 
@@ -615,6 +634,29 @@ class MyVisitor extends BigDataListener {
     }
 
     // LOOPS
+
+    enterLoopBool(ctx) {
+        this.temp_wat = this.wat;
+        this.wat = "";
+        this.temp_wasm = this.bodySection;
+        this.bodySection = [];
+    }
+
+    exitLoopBool(ctx) {
+        //cache wat/wasm from before to save boolean condition
+        this.loophelper_wat.push(this.wat);
+        this.loophelper_wasm.push(this.bodySection);
+        this.wat = this.temp_wat + this.loophelper_wat[this.loophelper_wat.length - 1];
+        this.bodySection = this.temp_wasm.concat(this.loophelper_wasm[this.loophelper_wasm.length - 1]);
+        this.temp_wat = "";
+        this.temp_wasm = [];
+        //evaluate boolean condition to see if there is need to branch
+        this.wat += "i32.eqz\n" +
+            "br_if $b0\n" +
+            "loop $l0\n";
+        this.bodySection.push(0x45, 0x0d, 0x00, 0x03, 0x40);
+    }
+
     // DO...WHILE LOOP
 
     enterDowhileloop(ctx) {
@@ -630,13 +672,32 @@ class MyVisitor extends BigDataListener {
 
     // WHILE LOOP
 
+    enterWhileloop(ctx) {
+        this.wat += "block $b0\n";
+        this.bodySection.push(0x02, 0x40);
+    }
+
+    exitWhileloop(ctx) {
+        //at the end of the loop look if we run through it again
+        this.wat += this.loophelper_wat.pop();
+        this.wat += "br_if $l0\n" +
+            "end\n" +
+            "end\n";
+        this.bodySection = this.bodySection.concat(this.loophelper_wasm.pop());
+        this.bodySection.push(0x0d, 0x00, 0x0b, 0x0b);
+    }
+
+    // FOR LOOP
+
     enterForloop(ctx) {
         this.wat += "block $b0\n";
         this.bodySection.push(0x02, 0x40);
     }
 
     exitForloop(ctx) {
+        //drop the counting var from stack
         this.wat += this.loophelper_wat.pop() + "drop\n";
+        //at the end of the loop look if we run through it again
         this.wat += this.loophelper_wat.pop();
         this.wat += "br_if $l0\n" +
             "end\n" +
@@ -662,40 +723,6 @@ class MyVisitor extends BigDataListener {
         this.bodySection = this.temp_wasm;
         this.temp_wat = "";
         this.temp_wasm = [];
-    }
-
-    enterLoopBool(ctx) {
-        this.temp_wat = this.wat;
-        this.wat = "";
-        this.temp_wasm = this.bodySection;
-        this.bodySection = [];
-    }
-
-    exitLoopBool(ctx) {
-        this.loophelper_wat.push(this.wat);
-        this.loophelper_wasm.push(this.bodySection);
-        this.wat = this.temp_wat + this.loophelper_wat[this.loophelper_wat.length - 1];
-        this.bodySection = this.temp_wasm.concat(this.loophelper_wasm[this.loophelper_wasm.length - 1]);
-        this.temp_wat = "";
-        this.temp_wasm = [];
-        this.wat += "i32.eqz\n" +
-            "br_if $b0\n" +
-            "loop $l0\n";
-        this.bodySection.push(0x45, 0x0d, 0x00, 0x03, 0x40);
-    }
-
-    enterWhileloop(ctx) {
-        this.wat += "block $b0\n";
-        this.bodySection.push(0x02, 0x40);
-    }
-
-    exitWhileloop(ctx) {
-        this.wat += this.loophelper_wat.pop();
-        this.wat += "br_if $l0\n" +
-            "end\n" +
-            "end\n";
-        this.bodySection = this.bodySection.concat(this.loophelper_wasm.pop());
-        this.bodySection.push(0x0d, 0x00, 0x0b, 0x0b);
     }
 
     //HELP FUNCTIONS
@@ -763,7 +790,6 @@ class MyVisitor extends BigDataListener {
 
     getFloat32(float) {
         return new Uint8Array(Float32Array.of(float).buffer);
-
     }
 
     getFloat64(float) {
@@ -778,6 +804,10 @@ class MyVisitor extends BigDataListener {
         return this.variables.get(this.currentFunc).get(ctx)[1];
     }
 
+    /**
+     * Constructs wasm code by concating all single parts
+     * @returns {number[]} wasm code generated through compiling
+     */
     getWasm() {
         this.typeSection[1] = this.typeSection.length - 2; //set section length
 
