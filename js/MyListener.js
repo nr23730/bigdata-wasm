@@ -79,6 +79,107 @@ class MyVisitor extends BigDataListener {
         this.wat += ")";
     }
 
+    //DATA TYPES
+
+    enterInteger(ctx) {
+        //put instruction for 32bit integer on stack
+        this.wat += "i32.const " + ctx.getText() + "\n";
+        this.bodySection.push(0x41);
+
+        //put the integer on stack
+        this.bodySection = this.bodySection.concat(this.getLEB128(ctx.getText()));
+        this.typeStack.push(Types.Int);
+    }
+
+    enterLong(ctx) {
+        //put instruction for 64bit integer on stack
+        this.wat += "i64.const " + ctx.getText().replace("L", "") + "\n";
+        this.bodySection.push(0x42);
+
+        //put the long on stack
+        this.bodySection = this.bodySection.concat(this.getLEB128(parseInt(ctx.getText())));
+        this.typeStack.push(Types.Long);
+    }
+
+    enterFloat(ctx) {
+        //put instruction for 32bit float on stack
+        let text = ctx.getText().replace("F", "");
+        this.wat += "f32.const " + text + "\n";
+
+        //put the float on stack
+        this.bodySection.push(0x43);
+        this.bodySection = this.bodySection.concat([].slice.call(this.getFloat32(text)));
+        this.typeStack.push(Types.Float);
+    }
+
+    enterDouble(ctx) {
+        //put instruction for 64bit float on stack
+        this.wat += "f64.const " + ctx.getText() + "\n";
+        this.bodySection.push(0x44);
+
+        //put the double on stack
+        this.bodySection = this.bodySection.concat([].slice.call(this.getFloat64(ctx.getText())));
+        this.typeStack.push(Types.Double);
+    }
+
+    enterBoolean(ctx) {
+        //switch atomar values to 0/1
+        let value = -1;
+        switch (ctx.getText()) {
+            case "true":
+                value = 1;
+                break;
+            case "false":
+                value = 0;
+                break;
+        }
+
+        //put instruction for boolean on stack
+        this.wat += "i32.const " + value + "\n";
+        this.bodySection.push(0x41);
+
+        //put the boolean on stack
+        this.bodySection.push(value);
+        this.typeStack.push(Types.Boolean);
+    }
+
+    // VARIABLES / PARAMETERS
+
+    enterVariable(ctx) {
+        //put variable on type stack
+        this.typeStack.push(this.getVarType(ctx.varName.text));
+
+        //put instrunctino to get a local variable on stack
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20);
+
+        //put var index on stack
+        this.bodySection.push(this.getVarIndex(ctx.varName.text));
+
+    }
+
+    exitVarDeclaration(ctx) {
+        //save new variable
+        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), false]);
+        //save value if it already has been initialized
+        if (ctx.expr != null)
+            this.exitAssignment(ctx);
+    }
+
+    exitVarHanding(ctx) {
+        //save new variable
+        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), true]);
+    };
+
+    exitAssignment(ctx) {
+        this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x21);
+        this.bodySection.push(this.getVarIndex(ctx.varName.text));
+        this.typeStack.pop()
+    }
+
+    //MATHEMATICAL OPERATIONS
+
     exitDiv(ctx) {
         //check if both operands have the same type
         let type = this.typeStack.pop();
@@ -188,67 +289,43 @@ class MyVisitor extends BigDataListener {
         }
     }
 
-    enterInteger(ctx) {
-        //put instruction for 32bit integer on stack
-        this.wat += "i32.const " + ctx.getText() + "\n";
-        this.bodySection.push(0x41);
+    // PRE / POST INCREMENTATION / DECREMENTATION
 
-        //put the integer on stack
-        this.bodySection = this.bodySection.concat(this.getLEB128(ctx.getText()));
-        this.typeStack.push(Types.Int);
+    exitPreDecrement(ctx) {
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "i32.const 1\n" +
+            "i32.sub\n" +
+            "tee_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6b, 0x22, this.getVarIndex(ctx.varName.text));
     }
 
-    enterLong(ctx) {
-        //put instruction for 64bit integer on stack
-        this.wat += "i64.const " + ctx.getText().replace("L", "") + "\n";
-        this.bodySection.push(0x42);
-
-        //put the long on stack
-        this.bodySection = this.bodySection.concat(this.getLEB128(parseInt(ctx.getText())));
-        this.typeStack.push(Types.Long);
+    exitPreIncrement(ctx) {
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "i32.const 1\n" +
+            "i32.add\n" +
+            "tee_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6a, 0x22, this.getVarIndex(ctx.varName.text));
     }
 
-    enterFloat(ctx) {
-        //put instruction for 32bit float on stack
-        let text = ctx.getText().replace("F", "");
-        this.wat += "f32.const " + text + "\n";
-
-        //put the float on stack
-        this.bodySection.push(0x43);
-        this.bodySection = this.bodySection.concat([].slice.call(this.getFloat32(text)));
-        this.typeStack.push(Types.Float);
+    exitPostDecrement(ctx) {
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "i32.const 1\n" +
+            "i32.sub\n" +
+            "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6b, 0x21, this.getVarIndex(ctx.varName.text));
     }
 
-    enterDouble(ctx) {
-        //put instruction for 64bit float on stack
-        this.wat += "f64.const " + ctx.getText() + "\n";
-        this.bodySection.push(0x44);
-
-        //put the double on stack
-        this.bodySection = this.bodySection.concat([].slice.call(this.getFloat64(ctx.getText())));
-        this.typeStack.push(Types.Double);
+    exitPostIncrement(ctx) {
+        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
+            "i32.const 1\n" +
+            "i32.add\n" +
+            "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
+        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6a, 0x21, this.getVarIndex(ctx.varName.text));
     }
 
-    enterBoolean(ctx) {
-        //switch atomar values to 0/1
-        let value = -1;
-        switch (ctx.getText()) {
-            case "true":
-                value = 1;
-                break;
-            case "false":
-                value = 0;
-                break;
-        }
-
-        //put instruction for boolean on stack
-        this.wat += "i32.const " + value + "\n";
-        this.bodySection.push(0x41);
-
-        //put the boolean on stack
-        this.bodySection.push(value);
-        this.typeStack.push(Types.Boolean);
-    }
+    //COMPARE OPERATIONS
 
     exitLT(ctx) {
         let type = this.typeStack.pop();
@@ -420,6 +497,8 @@ class MyVisitor extends BigDataListener {
         }
     }
 
+    //LOGIC OPERATIONS
+
     exitLAND(ctx) {
         this.wat += this.typeStack.pop().wat + ".and\n";
         this.typeStack.pop();
@@ -438,55 +517,7 @@ class MyVisitor extends BigDataListener {
         this.typeStack.push(Types.Boolean)
     }
 
-    enterVariable(ctx) {
-        //put variable on type stack
-        this.typeStack.push(this.getVarType(ctx.varName.text));
-
-        //put instrunctino to get a local variable on stack
-        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(0x20);
-
-        //put var index on stack
-        this.bodySection.push(this.getVarIndex(ctx.varName.text));
-
-    }
-
-    exitVarDeclaration(ctx) {
-        //save new variable
-        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), false]);
-        //save value if it already has been initialized
-        if (ctx.expr != null)
-            this.exitAssignment(ctx);
-    }
-
-    exitVarHanding(ctx) {
-        //save new variable
-        this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), true]);
-    };
-
-    exitAssignment(ctx) {
-        this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(0x21);
-        this.bodySection.push(this.getVarIndex(ctx.varName.text));
-        this.typeStack.pop()
-    }
-
-    enterTrueBlock(ctx) {
-        //brnach if integer on stack indicates so
-        this.wat += "if\n";
-        this.bodySection.push(0x04, 0x40);
-        this.typeStack.pop();
-    }
-
-    exitBranch(ctx) {
-        this.wat += "end\n";
-        this.bodySection.push(0x0b);
-    }
-
-    enterElseBlock(ctx) {
-        this.wat += "else\n";
-        this.bodySection.push(0x05);
-    }
+    // FUNCTION DEFINITION / FUNCTION CALL
 
     enterFunctionDefinition(ctx) {
         this.exportCounter++;
@@ -564,6 +595,41 @@ class MyVisitor extends BigDataListener {
         this.funcReplace.push(this.bodySection.length - 1);
     }
 
+    // IF/ELSE STATEMENTS
+
+    enterTrueBlock(ctx) {
+        //branch if integer on stack indicates so
+        this.wat += "if\n";
+        this.bodySection.push(0x04, 0x40);
+        this.typeStack.pop();
+    }
+
+    enterElseBlock(ctx) {
+        this.wat += "else\n";
+        this.bodySection.push(0x05);
+    }
+
+    exitBranch(ctx) {
+        this.wat += "end\n";
+        this.bodySection.push(0x0b);
+    }
+
+    // LOOPS
+    // DO...WHILE LOOP
+
+    enterDowhileloop(ctx) {
+        this.wat += "loop $l0\n";
+        this.bodySection.push(0x03, 0x40);
+    }
+
+    exitDowhileloop(ctx) {
+        this.wat += "br_if $l0\n" +
+            "end\n";
+        this.bodySection.push(0x0d, 0x00, 0x0b);
+    }
+
+    // WHILE LOOP
+
     enterForloop(ctx) {
         this.wat += "block $b0\n";
         this.bodySection.push(0x02, 0x40);
@@ -632,50 +698,7 @@ class MyVisitor extends BigDataListener {
         this.bodySection.push(0x0d, 0x00, 0x0b, 0x0b);
     }
 
-    enterDowhileloop(ctx) {
-        this.wat += "loop $l0\n";
-        this.bodySection.push(0x03, 0x40);
-    }
-
-    exitDowhileloop(ctx) {
-        this.wat += "br_if $l0\n" +
-            "end\n";
-        this.bodySection.push(0x0d, 0x00, 0x0b);
-    }
-
-    exitPreDecrement(ctx) {
-        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
-            "i32.const 1\n" +
-            "i32.sub\n" +
-            "tee_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6b, 0x22, this.getVarIndex(ctx.varName.text));
-    }
-
-    exitPreIncrement(ctx) {
-        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
-            "i32.const 1\n" +
-            "i32.add\n" +
-            "tee_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6a, 0x22, this.getVarIndex(ctx.varName.text));
-    }
-
-    exitPostDecrement(ctx) {
-        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
-            "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
-            "i32.const 1\n" +
-            "i32.sub\n" +
-            "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6b, 0x21, this.getVarIndex(ctx.varName.text));
-    }
-
-    exitPostIncrement(ctx) {
-        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
-            "get_local " + this.getVarIndex(ctx.varName.text) + "\n" +
-            "i32.const 1\n" +
-            "i32.add\n" +
-            "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6a, 0x21, this.getVarIndex(ctx.varName.text));
-    }
+    //HELP FUNCTIONS
 
     /**
      * Converts a String with a DataType into an object
