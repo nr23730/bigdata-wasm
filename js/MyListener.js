@@ -203,6 +203,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be the same type as input
             this.typeStack.push(type);
+        } else {
+            throw("Division of two non-equal types!");
         }
     }
 
@@ -230,6 +232,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be the same type as input
             this.typeStack.push(type);
+        } else {
+            throw("Multiplication of two non-equal types!");
         }
     }
 
@@ -257,6 +261,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be the same type as input
             this.typeStack.push(type);
+        } else {
+            throw("Addition of two non-equal types!");
         }
     }
 
@@ -284,6 +290,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be the same type as input
             this.typeStack.push(type);
+        } else {
+            throw("Subtraction of two non-equal types!");
         }
     }
 
