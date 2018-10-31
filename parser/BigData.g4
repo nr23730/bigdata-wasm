@@ -24,7 +24,7 @@ statement
 //println: argument=expression;
 
 branch
-    :   'if' '(' condition=expression ')' onTrue=trueBlock 'else' onFalse=elseBlock
+    :   'if' '(' condition=expression ')' onTrue=trueBlock ('else' onFalse=elseBlock)?
     ;
 
 block
