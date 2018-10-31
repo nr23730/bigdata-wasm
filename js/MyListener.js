@@ -2,19 +2,20 @@ const BigDataListener = require('../parser/BigDataListener').BigDataListener;
 
 //Create an object containing instructions for data types in text and byte code representation
 class DataType {
-    constructor(wat, wasm) {
+    constructor(wat, wasm, string) {
         this.wat = wat;
         this.wasm = wasm;
+        this.string = string;
     }
 }
 
 //Assign data types and their representation in wat/wasm
 const Types = {
-    Boolean: new DataType("i32", 0x7f),
-    Int: new DataType("i32", 0x7f),
-    Long: new DataType("i64", 0x7e),
-    Float: new DataType("f32", 0x7d),
-    Double: new DataType("f64", 0x7c)
+    Boolean: new DataType("i32", 0x7f, "Boolean"),
+    Int: new DataType("i32", 0x7f, "Int"),
+    Long: new DataType("i64", 0x7e, "Long"),
+    Float: new DataType("f32", 0x7d, "Float"),
+    Double: new DataType("f64", 0x7c, "Double")
 };
 
 
@@ -170,10 +171,11 @@ class MyVisitor extends BigDataListener {
     }
 
     exitAssignment(ctx) {
+        if (this.typeStack.pop() != this.getVarType(ctx.varName.text))
+            throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string);
         this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x21);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
-        this.typeStack.pop()
     }
 
     //MATHEMATICAL OPERATIONS
@@ -357,6 +359,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be boolean
             this.typeStack.push(Types.Boolean);
+        } else {
+            throw("Comparison of two non-equal types!");
         }
     }
 
@@ -384,6 +388,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be boolean
             this.typeStack.push(Types.Boolean);
+        } else {
+            throw("Comparison of two non-equal types!");
         }
     }
 
@@ -411,6 +417,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be boolean
             this.typeStack.push(Types.Boolean);
+        } else {
+            throw("Comparison of two non-equal types!");
         }
     }
 
@@ -438,6 +446,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be boolean
             this.typeStack.push(Types.Boolean);
+        } else {
+            throw("Comparison of two non-equal types!");
         }
     }
 
@@ -469,6 +479,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be boolean
             this.typeStack.push(Types.Boolean);
+        } else {
+            throw("Comparison of two non-equal types!");
         }
     }
 
@@ -500,6 +512,8 @@ class MyVisitor extends BigDataListener {
             }
             //result will be boolean
             this.typeStack.push(Types.Boolean);
+        } else {
+            throw("Comparison of two non-equal types!");
         }
     }
 
@@ -625,10 +639,11 @@ class MyVisitor extends BigDataListener {
     // IF/ELSE STATEMENTS
 
     enterTrueBlock(ctx) {
+        if (this.typeStack.pop() != Types.Boolean)
+            throw("Non expected data type. Expected: " + Types.Boolean.string)
         //branch if integer on stack indicates so
         this.wat += "if\n";
         this.bodySection.push(0x04, 0x40);
-        this.typeStack.pop();
     }
 
     enterElseBlock(ctx) {
@@ -757,14 +772,11 @@ class MyVisitor extends BigDataListener {
             case "Double":
                 return Types.Double;
                 break;
-            default:
-                return Types.Int;
         }
     }
 
     /**
      * Convert strings to ASCII characters (for method names)
-     * TODO: Fix for Edge as it doesn't support TextEncoder
      * @param string to be converted
      * @returns {Uint8Array} with converted string
      */
