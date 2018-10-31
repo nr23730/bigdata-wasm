@@ -17,15 +17,12 @@
     <input id="n-value" type="text" value="10"/><br/>
     <textarea id="code" style="width:250px;height:200px">
 fun main(mul : Int) : Int {
-   var a : Int
-   a = 4
+   var a : Int = 4
    var b : Int = 6
    var c : Boolean = true
    var d : Int = 0
    if(c != false) {
       d = a+b*mul
-   } else {
-      d = 0
    }
    return d
 }
@@ -57,7 +54,7 @@ fun main(mul : Int) : Int {
         let tokens = new antlr4.CommonTokenStream(lexer);
         let parser = new BigDataParser.BigDataParser(tokens);
         parser.buildParseTrees = true;
-        let tree = parser.input();
+        let tree = parser.program();
         let listener = new MyListener(parser);
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
         document.getElementById('wat').innerText = "WebAssembly-Text (WAT):\n\n" + listener.wat;

@@ -11,12 +11,12 @@ function BigDataListener() {
 BigDataListener.prototype = Object.create(antlr4.tree.ParseTreeListener.prototype);
 BigDataListener.prototype.constructor = BigDataListener;
 
-// Enter a parse tree produced by BigDataParser#input.
-BigDataListener.prototype.enterInput = function (ctx) {
+// Enter a parse tree produced by BigDataParser#program.
+BigDataListener.prototype.enterProgram = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#input.
-BigDataListener.prototype.exitInput = function (ctx) {
+// Exit a parse tree produced by BigDataParser#program.
+BigDataListener.prototype.exitProgram = function (ctx) {
 };
 
 
@@ -29,21 +29,39 @@ BigDataListener.prototype.exitProgPartFunctionDefinition = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#statement.
-BigDataListener.prototype.enterStatement = function (ctx) {
+// Enter a parse tree produced by BigDataParser#functionDefinition.
+BigDataListener.prototype.enterFunctionDefinition = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#statement.
-BigDataListener.prototype.exitStatement = function (ctx) {
+// Exit a parse tree produced by BigDataParser#functionDefinition.
+BigDataListener.prototype.exitFunctionDefinition = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#branch.
-BigDataListener.prototype.enterBranch = function (ctx) {
+// Enter a parse tree produced by BigDataParser#parameterDeclaration.
+BigDataListener.prototype.enterParameterDeclaration = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#branch.
-BigDataListener.prototype.exitBranch = function (ctx) {
+// Exit a parse tree produced by BigDataParser#parameterDeclaration.
+BigDataListener.prototype.exitParameterDeclaration = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#functionParameter.
+BigDataListener.prototype.enterFunctionParameter = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#functionParameter.
+BigDataListener.prototype.exitFunctionParameter = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#functionBody.
+BigDataListener.prototype.enterFunctionBody = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#functionBody.
+BigDataListener.prototype.exitFunctionBody = function (ctx) {
 };
 
 
@@ -56,6 +74,42 @@ BigDataListener.prototype.exitBlock = function (ctx) {
 };
 
 
+// Enter a parse tree produced by BigDataParser#statement.
+BigDataListener.prototype.enterStatement = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#statement.
+BigDataListener.prototype.exitStatement = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#statementList.
+BigDataListener.prototype.enterStatementList = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#statementList.
+BigDataListener.prototype.exitStatementList = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#functionCall.
+BigDataListener.prototype.enterFunctionCall = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#functionCall.
+BigDataListener.prototype.exitFunctionCall = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#ifStatement.
+BigDataListener.prototype.enterIfStatement = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#ifStatement.
+BigDataListener.prototype.exitIfStatement = function (ctx) {
+};
+
+
 // Enter a parse tree produced by BigDataParser#trueBlock.
 BigDataListener.prototype.enterTrueBlock = function (ctx) {
 };
@@ -65,12 +119,30 @@ BigDataListener.prototype.exitTrueBlock = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#elseBlock.
-BigDataListener.prototype.enterElseBlock = function (ctx) {
+// Enter a parse tree produced by BigDataParser#falseBlock.
+BigDataListener.prototype.enterFalseBlock = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#elseBlock.
-BigDataListener.prototype.exitElseBlock = function (ctx) {
+// Exit a parse tree produced by BigDataParser#falseBlock.
+BigDataListener.prototype.exitFalseBlock = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#jump.
+BigDataListener.prototype.enterJump = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#jump.
+BigDataListener.prototype.exitJump = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#loop.
+BigDataListener.prototype.enterLoop = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#loop.
+BigDataListener.prototype.exitLoop = function (ctx) {
 };
 
 
@@ -83,21 +155,30 @@ BigDataListener.prototype.exitLoopBool = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#whileloop.
-BigDataListener.prototype.enterWhileloop = function (ctx) {
+// Enter a parse tree produced by BigDataParser#doWhileLoop.
+BigDataListener.prototype.enterDoWhileLoop = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#whileloop.
-BigDataListener.prototype.exitWhileloop = function (ctx) {
+// Exit a parse tree produced by BigDataParser#doWhileLoop.
+BigDataListener.prototype.exitDoWhileLoop = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#dowhileloop.
-BigDataListener.prototype.enterDowhileloop = function (ctx) {
+// Enter a parse tree produced by BigDataParser#whileLoop.
+BigDataListener.prototype.enterWhileLoop = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#dowhileloop.
-BigDataListener.prototype.exitDowhileloop = function (ctx) {
+// Exit a parse tree produced by BigDataParser#whileLoop.
+BigDataListener.prototype.exitWhileLoop = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#forLoop.
+BigDataListener.prototype.enterForLoop = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#forLoop.
+BigDataListener.prototype.exitForLoop = function (ctx) {
 };
 
 
@@ -110,12 +191,21 @@ BigDataListener.prototype.exitForExpression = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#forloop.
-BigDataListener.prototype.enterForloop = function (ctx) {
+// Enter a parse tree produced by BigDataParser#varDeclaration.
+BigDataListener.prototype.enterVarDeclaration = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#forloop.
-BigDataListener.prototype.exitForloop = function (ctx) {
+// Exit a parse tree produced by BigDataParser#varDeclaration.
+BigDataListener.prototype.exitVarDeclaration = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#assignment.
+BigDataListener.prototype.enterAssignment = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#assignment.
+BigDataListener.prototype.exitAssignment = function (ctx) {
 };
 
 
@@ -134,15 +224,6 @@ BigDataListener.prototype.enterVariable = function (ctx) {
 
 // Exit a parse tree produced by BigDataParser#Variable.
 BigDataListener.prototype.exitVariable = function (ctx) {
-};
-
-
-// Enter a parse tree produced by BigDataParser#FuncCallExpression.
-BigDataListener.prototype.enterFuncCallExpression = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#FuncCallExpression.
-BigDataListener.prototype.exitFuncCallExpression = function (ctx) {
 };
 
 
@@ -170,6 +251,15 @@ BigDataListener.prototype.enterLAND = function (ctx) {
 
 // Exit a parse tree produced by BigDataParser#LAND.
 BigDataListener.prototype.exitLAND = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#Fcall.
+BigDataListener.prototype.enterFcall = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#Fcall.
+BigDataListener.prototype.exitFcall = function (ctx) {
 };
 
 
@@ -299,21 +389,21 @@ BigDataListener.prototype.exitNEQ = function (ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#Boolean.
-BigDataListener.prototype.enterBoolean = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#Boolean.
-BigDataListener.prototype.exitBoolean = function (ctx) {
-};
-
-
 // Enter a parse tree produced by BigDataParser#PreDecrement.
 BigDataListener.prototype.enterPreDecrement = function (ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#PreDecrement.
 BigDataListener.prototype.exitPreDecrement = function (ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#Boolean.
+BigDataListener.prototype.enterBoolean = function (ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#Boolean.
+BigDataListener.prototype.exitBoolean = function (ctx) {
 };
 
 
@@ -332,69 +422,6 @@ BigDataListener.prototype.enterMinus = function (ctx) {
 
 // Exit a parse tree produced by BigDataParser#Minus.
 BigDataListener.prototype.exitMinus = function (ctx) {
-};
-
-
-// Enter a parse tree produced by BigDataParser#varDeclaration.
-BigDataListener.prototype.enterVarDeclaration = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#varDeclaration.
-BigDataListener.prototype.exitVarDeclaration = function (ctx) {
-};
-
-
-// Enter a parse tree produced by BigDataParser#varHanding.
-BigDataListener.prototype.enterVarHanding = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#varHanding.
-BigDataListener.prototype.exitVarHanding = function (ctx) {
-};
-
-
-// Enter a parse tree produced by BigDataParser#assignment.
-BigDataListener.prototype.enterAssignment = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#assignment.
-BigDataListener.prototype.exitAssignment = function (ctx) {
-};
-
-
-// Enter a parse tree produced by BigDataParser#functionDefinition.
-BigDataListener.prototype.enterFunctionDefinition = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#functionDefinition.
-BigDataListener.prototype.exitFunctionDefinition = function (ctx) {
-};
-
-
-// Enter a parse tree produced by BigDataParser#parameterDeclaration.
-BigDataListener.prototype.enterParameterDeclaration = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#parameterDeclaration.
-BigDataListener.prototype.exitParameterDeclaration = function (ctx) {
-};
-
-
-// Enter a parse tree produced by BigDataParser#statementList.
-BigDataListener.prototype.enterStatementList = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#statementList.
-BigDataListener.prototype.exitStatementList = function (ctx) {
-};
-
-
-// Enter a parse tree produced by BigDataParser#functionCall.
-BigDataListener.prototype.enterFunctionCall = function (ctx) {
-};
-
-// Exit a parse tree produced by BigDataParser#functionCall.
-BigDataListener.prototype.exitFunctionCall = function (ctx) {
 };
 
 

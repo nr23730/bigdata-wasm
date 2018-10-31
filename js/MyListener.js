@@ -71,11 +71,11 @@ class MyVisitor extends BigDataListener {
         this.loophelper_wasm = [];
     }
 
-    enterInput(ctx) {
+    enterProgram(ctx) {
         this.wat += "(module\n";
     }
 
-    exitInput(ctx) {
+    exitProgram(ctx) {
         this.wat += ")";
     }
 
@@ -148,7 +148,6 @@ class MyVisitor extends BigDataListener {
     enterVariable(ctx) {
         //put variable on type stack
         this.typeStack.push(this.getVarType(ctx.varName.text));
-
         //put instrunctino to get a local variable on stack
         this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x20);
@@ -165,7 +164,7 @@ class MyVisitor extends BigDataListener {
             this.exitAssignment(ctx);
     }
 
-    exitVarHanding(ctx) {
+    exitFunctionParameter(ctx) {
         //save new variable
         this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), true]);
     }
@@ -646,12 +645,12 @@ class MyVisitor extends BigDataListener {
         this.bodySection.push(0x04, 0x40);
     }
 
-    enterElseBlock(ctx) {
+    enterFalseBlock(ctx) {
         this.wat += "else\n";
         this.bodySection.push(0x05);
     }
 
-    exitBranch(ctx) {
+    exitIfStatement(ctx) {
         this.wat += "end\n";
         this.bodySection.push(0x0b);
     }
@@ -682,12 +681,12 @@ class MyVisitor extends BigDataListener {
 
     // DO...WHILE LOOP
 
-    enterDowhileloop(ctx) {
+    enterDoWhileLoop(ctx) {
         this.wat += "loop $l0\n";
         this.bodySection.push(0x03, 0x40);
     }
 
-    exitDowhileloop(ctx) {
+    exitDoWhileLoop(ctx) {
         this.wat += "br_if $l0\n" +
             "end\n";
         this.bodySection.push(0x0d, 0x00, 0x0b);
@@ -695,12 +694,12 @@ class MyVisitor extends BigDataListener {
 
     // WHILE LOOP
 
-    enterWhileloop(ctx) {
+    enterWhileLoop(ctx) {
         this.wat += "block $b0\n";
         this.bodySection.push(0x02, 0x40);
     }
 
-    exitWhileloop(ctx) {
+    exitWhileLoop(ctx) {
         //at the end of the loop look if we run through it again
         this.wat += this.loophelper_wat.pop();
         this.wat += "br_if $l0\n" +
@@ -712,12 +711,12 @@ class MyVisitor extends BigDataListener {
 
     // FOR LOOP
 
-    enterForloop(ctx) {
+    enterForLoop(ctx) {
         this.wat += "block $b0\n";
         this.bodySection.push(0x02, 0x40);
     }
 
-    exitForloop(ctx) {
+    exitForLoop(ctx) {
         //drop the counting var from stack
         this.wat += this.loophelper_wat.pop() + "drop\n";
         //at the end of the loop look if we run through it again

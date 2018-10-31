@@ -1,114 +1,43 @@
 grammar BigData;
 
-input
+program
     :   programPart+ EOF
     ;
-
 
 programPart
     :   //varDeclaration      #ProgPartVarDeclaration
 	    functionDefinition	#ProgPartFunctionDefinition
 	;
-			
-statement
-    :   varDeclaration
-	|   assignment
-	|   branch
-	|   whileloop
-	|   forloop
-	|   dowhileloop
-	|   functionCall
-  //|   println
-	;
 
-//println: argument=expression;
-
-branch
-    :   'if' '(' condition=expression ')' onTrue=trueBlock ('else' onFalse=elseBlock)?
+functionDefinition
+    :   'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' (':' type=TYPES)? functionBody
     ;
+
+parameterDeclaration
+    :   declarations+=functionParameter (',' declarations+=functionParameter)*
+    ;
+
+functionParameter
+    :   varName=IDENTIFIER ':' type=TYPES
+    ;
+
+functionBody
+    :   block
+    |   '=' expression;
 
 block
     :   statement
     |   '{' statementList '}'
     ;
-
-trueBlock
-    :   block
-    ;
-
-elseBlock
-    :   block
-    ;
-
-loopBool
-    :   expression
-    ;
-
-whileloop
-    :   'while' '(' loopBool ')' block
-    ;
-
-dowhileloop
-    :   'do' block 'while' '(' expression ')'
-    ;
-
-forExpression
-    :   expression
-    ;
-
-forloop
-    :   'for' '(' (varDeclaration | assignment) ';' loopBool ';' forExpression ')' block
-    ;
-
-expression
-    :   left=expression '/' right=expression    #Div
-    |	left=expression '*' right=expression    #Mult
-    |	left=expression '-' right=expression    #Minus
-    |	left=expression '+' right=expression    #Plus
-    |	INTEGER                                 #Integer
-    |   LONG                                    #Long
-    |   FLOAT                                   #Float
-    |   DOUBLE                                  #Double
-    |   BOOLEANLITERAL                          #Boolean
-    |	varName=IDENTIFIER                      #Variable
-    |	functionCall                            #FuncCallExpression
-  //|   txt=STRING                              #String
-	|   left=expression '<' right=expression    #LT
-    |   left=expression '<=' right=expression   #LEQ
-    |   left=expression '>' right=expression    #GT
-    |   left=expression '>=' right=expression   #GEQ
-    |   left=expression '==' right=expression   #EQ
-    |   left=expression '!=' right=expression   #NEQ
-    |   left=expression '&&' right=expression   #LAND
-    |   left=expression '||' right=expression   #LOR
-    |   '(' expression ')'                      #Parenthesis
-    |   varName=IDENTIFIER '++'                 #PostIncrement
-    |   '++' varName=IDENTIFIER                 #PreIncrement
-    |   varName=IDENTIFIER '--'                 #PostDecrement
-    |   '--' varName=IDENTIFIER                 #PreDecrement
-    ;
 			
-varDeclaration
-    :   'var' varName=IDENTIFIER ':' type=TYPES '=' expr=expression
-    |   'var' varName=IDENTIFIER ':' type=TYPES
-    ;
-			
-varHanding
-    :   varName=IDENTIFIER ':' type=TYPES
-    ;
-
-assignment
-    :   varName=IDENTIFIER '=' expr=expression
-    ;
-
-functionDefinition
-    :   'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' ':' type=TYPES '{' statements=statementList 'return' returnValue=expression'}'
-    |   'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' '{' statements=statementList '}'
-    ;
-
-parameterDeclaration
-    :   declarations+=varHanding (',' declarations+=varHanding)*
-    ;
+statement
+    :   functionCall
+	|   ifStatement
+	|   jump
+	|   loop
+	|   varDeclaration
+	|   assignment
+	;
 
 statementList
     :   (statement)*
@@ -118,20 +47,103 @@ functionCall
     :   funcName=IDENTIFIER '(' arguments=expressionList* ')'
     ;
 
+ifStatement
+    :   'if' '(' condition=expression ')' onTrue=trueBlock ('else' onFalse=falseBlock)?
+    ;
+
+trueBlock
+    :   block
+    ;
+
+falseBlock
+    :   block
+    ;
+
+jump
+    :   'return' expression
+    ;
+
+loop
+    :   doWhileLoop
+    |   whileLoop
+    |   forLoop
+    ;
+
+loopBool
+    :   expression
+    ;
+
+doWhileLoop
+    :   'do' block 'while' '(' expression ')'
+    ;
+
+whileLoop
+    :   'while' '(' loopBool ')' block
+    ;
+
+forLoop
+    :   'for' '(' (varDeclaration | assignment) ';' loopBool ';' forExpression ')' block
+    ;
+
+forExpression
+    :   expression
+    ;
+
+varDeclaration
+    :   'var' varName=IDENTIFIER ':' type=TYPES '=' expr=expression
+    ;
+
+assignment
+    :   varName=IDENTIFIER '=' expr=expression
+    ;
+
+expression
+    :   '(' expression ')'                      #Parenthesis
+
+    |   varName=IDENTIFIER '++'                 #PostIncrement
+    |   varName=IDENTIFIER '--'                 #PostDecrement
+
+    |   '++' varName=IDENTIFIER                 #PreIncrement
+    |   '--' varName=IDENTIFIER                 #PreDecrement
+
+    |   left=expression '/' right=expression    #Div
+    |	left=expression '*' right=expression    #Mult
+
+    |   left=expression '-' right=expression    #Minus
+    |	left=expression '+' right=expression    #Plus
+
+    |	varName=IDENTIFIER                      #Variable
+    |	INTEGER                                 #Integer
+    |   LONG                                    #Long
+    |   FLOAT                                   #Float
+    |   DOUBLE                                  #Double
+    |   BOOLEANLITERAL                          #Boolean
+    |   functionCall                            #Fcall
+
+    |   left=expression '<' right=expression    #LT
+    |   left=expression '<=' right=expression   #LEQ
+    |   left=expression '>' right=expression    #GT
+    |   left=expression '>=' right=expression   #GEQ
+
+    |   left=expression '==' right=expression   #EQ
+    |   left=expression '!=' right=expression   #NEQ
+
+    |   left=expression '&&' right=expression   #LAND
+    |   left=expression '||' right=expression   #LOR
+    ;
+
 expressionList
     :   expressions+=expression (',' expressions+=expression)*
     ;
 
 TYPES
     :   INTTYPE
-  //|   STRINGTYPE
     |   BOOLTYPE
     |   LONGTYPE
     |   FLOATTYPE
     |   DOUBLETYPE
     ;
 
-//STRINGTYPE:   'String';
 BOOLTYPE:   'Boolean';
 INTTYPE:    'Int';
 LONGTYPE:   'Long';
@@ -141,7 +153,7 @@ DOUBLETYPE: 'Double';
 BOOLEANLITERAL: 'true' | 'false';
 IDENTIFIER: [a-zA-Z][a-zA-Z0-9]*;
 
-INTEGER:    ('+' | '-')? [0-9]+;
+INTEGER:    ('+' | '-')? ([1-9][0-9]*|[0]);
 LONG:   INTEGER 'L';
 FLOAT:  DOUBLE 'F';
 DOUBLE: ('+' | '-')? ([0-9]* '.')? [0-9]+ (('e'|'E') [0-9]+)*;

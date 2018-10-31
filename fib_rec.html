@@ -65,7 +65,7 @@ function fib(n) {
         let tokens = new antlr4.CommonTokenStream(lexer);
         let parser = new BigDataParser.BigDataParser(tokens);
         parser.buildParseTrees = true;
-        let tree = parser.input();
+        let tree = parser.program();
         let listener = new MyListener(parser);
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
         let wasmModule = new WebAssembly.Module(new Uint8Array(listener.getWasm()));
