@@ -32,6 +32,20 @@ class MyVisitor extends BigDataListener {
             0x00, //section size calculated afterwards
             0x00, //num types (will get increased when new type added)
         ];
+        this.importSection = [
+            0x02, //section code
+            0x00, //section size calculated afterwards
+            0x01, //number of imports
+
+            //import header 0
+            0x02, //string length
+            0x6a, 0x73, //"js" in hex
+            0x03, //string length
+            0x6d, 0x65, 0x6d, //"mem" in hex
+            0x02, //import kind
+            0x00, //limits: flags
+            0x01, //limits: initial
+        ];
         this.functionSection = [
             0x03, //section code
             0x00, //section size calculated afterwards
@@ -753,12 +767,12 @@ class MyVisitor extends BigDataListener {
 
     exitMemAssignment(ctx) {
         this.wat += "i32.store\n";
-        this.bodySection.push(0x36);
+        this.bodySection.push(0x36, 0x02, 0x00);
     }
 
     exitMemory(ctx) {
         this.wat += "i32.load\n";
-        this.bodySection.push(0x28);
+        this.bodySection.push(0x28, 0x02, 0x00);
     }
 
     //HELP FUNCTIONS
@@ -844,6 +858,8 @@ class MyVisitor extends BigDataListener {
     getWasm() {
         this.typeSection[1] = this.typeSection.length - 2; //set section length
 
+        this.importSection[1] = this.importSection.length -2;
+
         this.functionSection[1] = this.functionSection.length - 2; //set section length
 
         this.codeSection = this.codeSection.concat(this.bodySection); //body section is part of the code section
@@ -852,6 +868,7 @@ class MyVisitor extends BigDataListener {
         //concat all parts to a wasm binary
         return this.binaryMagic
             .concat(this.typeSection)
+            .concat(this.importSection)
             .concat(this.functionSection)
             .concat(this.exportSection)
             .concat(this.codeSection);
