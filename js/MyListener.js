@@ -189,7 +189,7 @@ class MyVisitor extends BigDataListener {
 
     exitAssignment(ctx) {
         if (this.typeStack.pop() != this.getVarType(ctx.varName.text))
-            console.log("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string);
+            throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string);
         this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x21);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
@@ -768,7 +768,7 @@ class MyVisitor extends BigDataListener {
     //MEMORY
 
     exitMemAssignment(ctx) {
-        let type = this.typeStack.pop()
+        let type = this.typeStack.pop();
         if (this.typeStack.pop() == Types.Int) {
             switch (type) {
                 case Types.Boolean:
