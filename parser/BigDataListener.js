@@ -209,12 +209,12 @@ BigDataListener.prototype.exitAssignment = function(ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#memassignment.
-BigDataListener.prototype.enterMemassignment = function(ctx) {
+// Enter a parse tree produced by BigDataParser#memAssignment.
+BigDataListener.prototype.enterMemAssignment = function(ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#memassignment.
-BigDataListener.prototype.exitMemassignment = function(ctx) {
+// Exit a parse tree produced by BigDataParser#memAssignment.
+BigDataListener.prototype.exitMemAssignment = function(ctx) {
 };
 
 

@@ -121,7 +121,7 @@ forLoop
 forExpression
 varDeclaration
 assignment
-memassignment
+memAssignment
 expression
 expressionList
 

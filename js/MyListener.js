@@ -170,8 +170,9 @@ class MyVisitor extends BigDataListener {
     }
 
     exitAssignment(ctx) {
-        if (this.typeStack.pop() != this.getVarType(ctx.varName.text))
-            throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string);
+    //TODO: FIX this!
+        //if (this.typeStack.pop() != this.getVarType(ctx.varName.text))
+            //throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string);
         this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x21);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
@@ -745,6 +746,18 @@ class MyVisitor extends BigDataListener {
         this.bodySection = this.temp_wasm;
         this.temp_wat = "";
         this.temp_wasm = [];
+    }
+
+    //MEMORY
+
+    exitMemAssignment(ctx) {
+        this.wat += "i32.store " + ctx.index.text + "\n";
+        this.bodySection.push(0x36, ctx.index.text);
+    }
+
+    exitMemory(ctx) {
+        this.wat += "i32.load " + ctx.index.text + "\n";
+        this.bodySection.push(0x28, ctx.index.text);
     }
 
     //HELP FUNCTIONS

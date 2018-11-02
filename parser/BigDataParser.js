@@ -203,7 +203,7 @@ var ruleNames =  [ "program", "programPart", "functionDefinition", "parameterDec
                    "statementList", "functionCall", "ifStatement", "trueBlock", 
                    "falseBlock", "jump", "loop", "loopBool", "doWhileLoop", 
                    "whileLoop", "forLoop", "forExpression", "varDeclaration", 
-                   "assignment", "memassignment", "expression", "expressionList" ];
+                   "assignment", "memAssignment", "expression", "expressionList" ];
 
 function BigDataParser (input) {
 	antlr4.Parser.call(this, input);
@@ -294,7 +294,7 @@ BigDataParser.RULE_forLoop = 18;
 BigDataParser.RULE_forExpression = 19;
 BigDataParser.RULE_varDeclaration = 20;
 BigDataParser.RULE_assignment = 21;
-BigDataParser.RULE_memassignment = 22;
+BigDataParser.RULE_memAssignment = 22;
 BigDataParser.RULE_expression = 23;
 BigDataParser.RULE_expressionList = 24;
 
@@ -921,8 +921,8 @@ StatementContext.prototype.assignment = function() {
     return this.getTypedRuleContext(AssignmentContext,0);
 };
 
-StatementContext.prototype.memassignment = function() {
-    return this.getTypedRuleContext(MemassignmentContext,0);
+StatementContext.prototype.memAssignment = function() {
+    return this.getTypedRuleContext(MemAssignmentContext,0);
 };
 
 StatementContext.prototype.enterRule = function(listener) {
@@ -990,7 +990,7 @@ BigDataParser.prototype.statement = function() {
         case 7:
             this.enterOuterAlt(localctx, 7);
             this.state = 102;
-            this.memassignment();
+            this.memAssignment();
             break;
 
         }
@@ -2036,7 +2036,7 @@ BigDataParser.prototype.assignment = function() {
     return localctx;
 };
 
-function MemassignmentContext(parser, parent, invokingState) {
+function MemAssignmentContext(parser, parent, invokingState) {
 	if(parent===undefined) {
 	    parent = null;
 	}
@@ -2045,43 +2045,44 @@ function MemassignmentContext(parser, parent, invokingState) {
 	}
 	antlr4.ParserRuleContext.call(this, parent, invokingState);
     this.parser = parser;
-    this.ruleIndex = BigDataParser.RULE_memassignment;
+    this.ruleIndex = BigDataParser.RULE_memAssignment;
+    this.index = null; // Token
     this.expr = null; // ExpressionListContext
     return this;
 }
 
-MemassignmentContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
-MemassignmentContext.prototype.constructor = MemassignmentContext;
+MemAssignmentContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
+MemAssignmentContext.prototype.constructor = MemAssignmentContext;
 
-MemassignmentContext.prototype.INTEGER = function() {
+MemAssignmentContext.prototype.INTEGER = function() {
     return this.getToken(BigDataParser.INTEGER, 0);
 };
 
-MemassignmentContext.prototype.expressionList = function() {
+MemAssignmentContext.prototype.expressionList = function() {
     return this.getTypedRuleContext(ExpressionListContext,0);
 };
 
-MemassignmentContext.prototype.enterRule = function(listener) {
+MemAssignmentContext.prototype.enterRule = function(listener) {
     if(listener instanceof BigDataListener ) {
-        listener.enterMemassignment(this);
+        listener.enterMemAssignment(this);
 	}
 };
 
-MemassignmentContext.prototype.exitRule = function(listener) {
+MemAssignmentContext.prototype.exitRule = function(listener) {
     if(listener instanceof BigDataListener ) {
-        listener.exitMemassignment(this);
+        listener.exitMemAssignment(this);
 	}
 };
 
 
 
 
-BigDataParser.MemassignmentContext = MemassignmentContext;
+BigDataParser.MemAssignmentContext = MemAssignmentContext;
 
-BigDataParser.prototype.memassignment = function() {
+BigDataParser.prototype.memAssignment = function() {
 
-    var localctx = new MemassignmentContext(this, this._ctx, this.state);
-    this.enterRule(localctx, 44, BigDataParser.RULE_memassignment);
+    var localctx = new MemAssignmentContext(this, this._ctx, this.state);
+    this.enterRule(localctx, 44, BigDataParser.RULE_memAssignment);
     try {
         this.enterOuterAlt(localctx, 1);
         this.state = 183;
@@ -2089,7 +2090,7 @@ BigDataParser.prototype.memassignment = function() {
         this.state = 184;
         this.match(BigDataParser.T__17);
         this.state = 185;
-        this.match(BigDataParser.INTEGER);
+        localctx.index = this.match(BigDataParser.INTEGER);
         this.state = 186;
         this.match(BigDataParser.T__18);
         this.state = 187;
@@ -2190,6 +2191,7 @@ VariableContext.prototype.exitRule = function(listener) {
 
 function MemoryContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
+    this.index = null; // Token;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -3007,7 +3009,7 @@ BigDataParser.prototype.expression = function(_p) {
             this.state = 205;
             this.match(BigDataParser.T__17);
             this.state = 206;
-            this.match(BigDataParser.INTEGER);
+            localctx.index = this.match(BigDataParser.INTEGER);
             this.state = 207;
             this.match(BigDataParser.T__18);
             break;
