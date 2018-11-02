@@ -766,8 +766,32 @@ class MyVisitor extends BigDataListener {
     //MEMORY
 
     exitMemAssignment(ctx) {
-        this.wat += "i32.store\n";
-        this.bodySection.push(0x36, 0x02, 0x00);
+        let type = this.typeStack.pop()
+        if (this.typeStack.pop() == Types.Int) {
+            switch (type) {
+                case Types.Boolean:
+                    this.wat += type.wat + ".store8\n";
+                    this.bodySection.push(0x3a);
+                    break;
+                case Types.Int:
+                    this.wat += type.wat + ".store\n";
+                    this.bodySection.push(0x36);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".store\n";
+                    this.bodySection.push(0x37);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".store\n";
+                    this.bodySection.push(0x38);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".store\n";
+                    this.bodySection.push(0x39);
+                    break;
+            }
+        }
+        this.bodySection.push(0x02, 0x00);
     }
 
     exitMemory(ctx) {
