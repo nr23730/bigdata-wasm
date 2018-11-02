@@ -37,6 +37,7 @@ statement
 	|   loop
 	|   varDeclaration
 	|   assignment
+	|   memassignment
 	;
 
 statementList
@@ -97,6 +98,10 @@ assignment
     :   varName=IDENTIFIER '=' expr=expression
     ;
 
+memassignment
+    :   'memory' '[' INTEGER ']' '=' expr=expressionList
+    ;
+
 expression
     :   '(' expression ')'                      #Parenthesis
 
@@ -113,6 +118,7 @@ expression
     |	left=expression '+' right=expression    #Plus
 
     |	varName=IDENTIFIER                      #Variable
+    |   'memory' '[' INTEGER ']'                #Memory
     |	INTEGER                                 #Integer
     |   LONG                                    #Long
     |   FLOAT                                   #Float
