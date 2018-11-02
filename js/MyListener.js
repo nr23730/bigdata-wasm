@@ -171,9 +171,12 @@ class MyVisitor extends BigDataListener {
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
     }
 
-    exitVarDeclaration(ctx) {
+    enterVarDeclaration(ctx) {
         //save new variable
         this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), false]);
+    }
+
+    exitVarDeclaration(ctx) {
         //save value if it already has been initialized
         if (ctx.expr != null)
             this.exitAssignment(ctx);
@@ -185,9 +188,8 @@ class MyVisitor extends BigDataListener {
     }
 
     exitAssignment(ctx) {
-    //TODO: FIX this!
-        //if (this.typeStack.pop() != this.getVarType(ctx.varName.text))
-            //throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string);
+        if (this.typeStack.pop() != this.getVarType(ctx.varName.text))
+            console.log("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string);
         this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x21);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
@@ -790,13 +792,42 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0x39);
                     break;
             }
+            this.bodySection.push(0x02, 0x00);
+        } else {
+            throw("Invalid data type for memory index")
         }
-        this.bodySection.push(0x02, 0x00);
     }
 
     exitMemory(ctx) {
-        this.wat += "i32.load\n";
-        this.bodySection.push(0x28, 0x02, 0x00);
+        let type = this.getVarType(ctx.parentCtx.varName.text);
+        if (this.typeStack.pop() == Types.Int) {
+            switch (type) {
+                case Types.Boolean:
+                    this.wat += type.wat + ".load8\n";
+                    this.bodySection.push(0x2f);
+                    break;
+                case Types.Int:
+                    this.wat += type.wat + ".load\n";
+                    this.bodySection.push(0x28);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".load\n";
+                    this.bodySection.push(0x29);
+                    break;
+                case Types.Float:
+                    this.wat += type.wat + ".load\n";
+                    this.bodySection.push(0x2a);
+                    this.typeStack.push(Types.Float);
+                    break;
+                case Types.Double:
+                    this.wat += type.wat + ".load\n";
+                    this.bodySection.push(0x2b);
+                    break;
+            }
+            this.bodySection.push(0x02, 0x00);
+        } else {
+            throw("Invalid data type for memory index")
+        }
     }
 
     //HELP FUNCTIONS
