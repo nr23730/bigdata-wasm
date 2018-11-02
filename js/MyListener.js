@@ -72,7 +72,8 @@ class MyVisitor extends BigDataListener {
     }
 
     enterProgram(ctx) {
-        this.wat += "(module\n";
+        this.wat += "(module\n" +
+        "(memory (import \"js\" \"mem\") 1)\n";
     }
 
     exitProgram(ctx) {
@@ -751,13 +752,13 @@ class MyVisitor extends BigDataListener {
     //MEMORY
 
     exitMemAssignment(ctx) {
-        this.wat += "i32.store " + ctx.index.text + "\n";
-        this.bodySection.push(0x36, ctx.index.text);
+        this.wat += "i32.store\n";
+        this.bodySection.push(0x36);
     }
 
     exitMemory(ctx) {
-        this.wat += "i32.load " + ctx.index.text + "\n";
-        this.bodySection.push(0x28, ctx.index.text);
+        this.wat += "i32.load\n";
+        this.bodySection.push(0x28);
     }
 
     //HELP FUNCTIONS

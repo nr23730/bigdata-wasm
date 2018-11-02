@@ -99,7 +99,7 @@ assignment
     ;
 
 memAssignment
-    :   'memory' '[' index=INTEGER ']' '=' expr=expressionList
+    :   'memory' '[' expression ']' '=' expr=expressionList
     ;
 
 expression
@@ -118,7 +118,7 @@ expression
     |	left=expression '+' right=expression    #Plus
 
     |	varName=IDENTIFIER                      #Variable
-    |   'memory' '[' index=INTEGER ']'                #Memory
+    |   'memory' '[' expression ']'                #Memory
     |	INTEGER                                 #Integer
     |   LONG                                    #Long
     |   FLOAT                                   #Float
