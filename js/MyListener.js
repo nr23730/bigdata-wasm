@@ -799,7 +799,9 @@ class MyVisitor extends BigDataListener {
     }
 
     exitMemory(ctx) {
-        let type = this.getVarType(ctx.parentCtx.varName.text);
+        let type = Types.Int;
+        if (ctx.parentCtx.varName != undefined)
+            type = this.getVarType(ctx.parentCtx.varName.text);
         if (this.typeStack.pop() == Types.Int) {
             switch (type) {
                 case Types.Boolean:
@@ -824,6 +826,7 @@ class MyVisitor extends BigDataListener {
                     this.bodySection.push(0x2b);
                     break;
             }
+            this.typeStack.push(type);
             this.bodySection.push(0x02, 0x00);
         } else {
             throw("Invalid data type for memory index")
