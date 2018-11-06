@@ -644,6 +644,17 @@ class MyVisitor extends BigDataListener {
         this.bodySection[this.bodySectionlength - 2] = this.bodySection.length - this.bodySectionlength + 1;
     }
 
+    enterFunctionBody(ctx) {
+        this.wat += "block $b0\n";
+        this.bodySection.push(0x02, 0x40); //block void
+    }
+
+    exitFunctionBody(ctx) {
+        this.wat += "end\n" +
+            "i32.const 0\n";
+        this.bodySection.push(0x0b, 0x41, 0x00);
+    }
+
     exitFunctionCall(ctx) {
         //bring the call to the stack
         this.wat += "call $" + ctx.funcName.text + "\n";
@@ -651,6 +662,11 @@ class MyVisitor extends BigDataListener {
 
         //function name has to be replaced afterwards
         this.funcReplace.push(this.bodySection.length - 1);
+    }
+
+    exitReturn(ctx) {
+        this.wat += "return\n";
+        this.bodySection.push(0x0f);
     }
 
     // IF/ELSE STATEMENTS

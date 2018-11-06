@@ -128,12 +128,12 @@ BigDataListener.prototype.exitFalseBlock = function(ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#jump.
-BigDataListener.prototype.enterJump = function(ctx) {
+// Enter a parse tree produced by BigDataParser#Return.
+BigDataListener.prototype.enterReturn = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#jump.
-BigDataListener.prototype.exitJump = function(ctx) {
+// Exit a parse tree produced by BigDataParser#Return.
+BigDataListener.prototype.exitReturn = function (ctx) {
 };
 
 

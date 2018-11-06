@@ -1393,22 +1393,37 @@ function JumpContext(parser, parent, invokingState) {
 JumpContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
 JumpContext.prototype.constructor = JumpContext;
 
-JumpContext.prototype.expression = function() {
+
+JumpContext.prototype.copyFrom = function (ctx) {
+    antlr4.ParserRuleContext.prototype.copyFrom.call(this, ctx);
+};
+
+
+function ReturnContext(parser, ctx) {
+    JumpContext.call(this, parser);
+    JumpContext.prototype.copyFrom.call(this, ctx);
+    return this;
+}
+
+ReturnContext.prototype = Object.create(JumpContext.prototype);
+ReturnContext.prototype.constructor = ReturnContext;
+
+BigDataParser.ReturnContext = ReturnContext;
+
+ReturnContext.prototype.expression = function () {
     return this.getTypedRuleContext(ExpressionContext,0);
 };
-
-JumpContext.prototype.enterRule = function(listener) {
+ReturnContext.prototype.enterRule = function (listener) {
     if(listener instanceof BigDataListener ) {
-        listener.enterJump(this);
+        listener.enterReturn(this);
 	}
 };
 
-JumpContext.prototype.exitRule = function(listener) {
+ReturnContext.prototype.exitRule = function (listener) {
     if(listener instanceof BigDataListener ) {
-        listener.exitJump(this);
+        listener.exitReturn(this);
 	}
 };
-
 
 
 
@@ -1419,6 +1434,7 @@ BigDataParser.prototype.jump = function() {
     var localctx = new JumpContext(this, this._ctx, this.state);
     this.enterRule(localctx, 26, BigDataParser.RULE_jump);
     try {
+        localctx = new ReturnContext(this, localctx);
         this.enterOuterAlt(localctx, 1);
         this.state = 134;
         this.match(BigDataParser.T__10);
