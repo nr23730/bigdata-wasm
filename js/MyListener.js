@@ -582,9 +582,39 @@ class MyVisitor extends BigDataListener {
         //init function body
         this.bodySection.push(0x00, 0x00); //temporary length
         this.bodySectionlength = this.bodySection.length;
+
+        //init block containing function
+        this.wat += "block $b0\n";
+        this.bodySection.push(0x02, 0x40); //block void
     }
 
     exitFunctionDefinition(ctx) {
+        let type = this.getTypeObject(ctx.type.text);
+
+        //end the block containing the function
+        this.wat += "end\n";
+        this.bodySection.push(0x0b);
+
+        //put pseudo value to stack
+        this.wat += type.wat + ".const 0\n";
+        switch(type) {
+        case Types.Boolean:
+            this.bodySection.push(0x41,0x00);
+            break;
+        case Types.Int:
+            this.bodySection.push(0x41,0x00);
+            break;
+        case Types.Long:
+            this.bodySection.push(0x42,0x00);
+            break;
+        case Types.Float:
+            this.bodySection.push(0x43,0x00,0x00,0x00,0x00);
+            break;
+        case Types.Double:
+            this.bodySection.push(0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00);
+            break;
+        }
+
         //end the function
         this.wat += ")\n";
         this.bodySection.push(0x0b);
@@ -621,8 +651,8 @@ class MyVisitor extends BigDataListener {
         this.functionSection.push(this.functionSection[2] - 1);
 
         if (ctx.type) {
-            this.typeSection.push(0x01, this.getTypeObject(ctx.type.text).wasm);
-            this.wat = this.wat.replace("(result " + this.currentFunc + ")", "(result " + this.getTypeObject(ctx.type.text).wat + ")");
+            this.typeSection.push(0x01, type.wasm);
+            this.wat = this.wat.replace("(result " + this.currentFunc + ")", "(result " + type.wat + ")");
         } else {
             this.typeSection.push(0x00);
             this.wat = this.wat.replace("(result " + this.currentFunc + ")", "");
@@ -634,17 +664,6 @@ class MyVisitor extends BigDataListener {
 
         //fixup function body size
         this.bodySection[this.bodySectionlength - 2] = this.bodySection.length - this.bodySectionlength + 1;
-    }
-
-    enterFunctionBody(ctx) {
-        this.wat += "block $b0\n";
-        this.bodySection.push(0x02, 0x40); //block void
-    }
-
-    exitFunctionBody(ctx) {
-        this.wat += "end\n" +
-            "i32.const 0\n";
-        this.bodySection.push(0x0b, 0x41, 0x00);
     }
 
     exitFunctionCall(ctx) {
