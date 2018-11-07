@@ -31,12 +31,60 @@ class MyVisitor extends BigDataListener {
         this.typeSection = [
             0x01, //section code
             0x00, //section size calculated afterwards
-            0x00, //num types (will get increased when new type added)
+            0x04, //num types (will get increased when new type added)
+            //int
+            0x60,
+            0x01,
+            0x7f,
+            0x00,
+            //long
+            0x60,
+            0x01,
+            0x7e,
+            0x00,
+            //float
+            0x60,
+            0x01,
+            0x7d,
+            0x00,
+            //double
+            0x60,
+            0x01,
+            0x7c,
+            0x00
         ];
         this.importSection = [
             0x02, //section code
             0x00, //section size calculated afterwards
-            0x00, //number of imports
+            0x04, //number of imports
+            //int
+            0x05,
+            0x70, 0x72, 0x69, 0x6e, 0x74,
+            0x03,
+            0x69, 0x6e, 0x74,
+            0x00,
+            0x00,
+            //long
+            0x05,
+            0x70, 0x72, 0x69, 0x6e, 0x74,
+            0x04,
+            0x6c, 0x6f, 0x6e, 0x67,
+            0x00,
+            0x01,
+            //float
+            0x05,
+            0x70, 0x72, 0x69, 0x6e, 0x74,
+            0x05,
+            0x66, 0x6c, 0x6f, 0x61, 0x74,
+            0x00,
+            0x02,
+            //double
+            0x05,
+            0x70, 0x72, 0x69, 0x6e, 0x74,
+            0x06,
+            0x64, 0x6f, 0x75, 0x62, 0x6c, 0x65,
+            0x00,
+            0x03
         ];
         this.usages["memory"] = false;
         this.functionSection = [
@@ -64,6 +112,10 @@ class MyVisitor extends BigDataListener {
         //temporary variable for fixup of length values
         this.bodySectionlength = 0;
         this.functions = new Map();
+        this.functions.set("printint", 0);
+        this.functions.set("printlong", 1);
+        this.functions.set("printfloat", 2);
+        this.functions.set("printdouble", 3);
         this.funcReplace = [];
 
         //type stack to ensure type safeness
@@ -80,7 +132,11 @@ class MyVisitor extends BigDataListener {
 
     enterProgram(ctx) {
         this.wat += "(module\n" +
-        "(memory (import \"js\" \"mem\") 1)\n";
+            "(import \"print\" \"int\" (func 0 (param i32)))\n" +
+            "(import \"print\" \"float\" (func 1 (param i64)))\n" +
+            "(import \"print\" \"int\" (func 2 (param f32)))\n" +
+            "(import \"print\" \"float\" (func 3 (param f64)))\n" +
+            "(memory (import \"js\" \"mem\") 1)\n";
     }
 
     exitProgram(ctx) {
@@ -181,8 +237,9 @@ class MyVisitor extends BigDataListener {
     }
 
     exitAssignment(ctx) {
-        if (this.typeStack.pop() != this.getVarType(ctx.varName.text))
-            throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string);
+        let type = this.typeStack.pop();
+        //if (type != this.getVarType(ctx.varName.text))
+        //throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string) + ", Found: " + type.string;
         this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x21);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
@@ -576,7 +633,7 @@ class MyVisitor extends BigDataListener {
             "(local " + this.currentFunc + ")\n";
         this.exportSection.push(this.currentFunc.length);
         this.exportSection = this.exportSection.concat([].slice.call(this.getUInt8(this.currentFunc)));
-        this.exportSection.push(0x00, this.exportCounter - 1);
+        this.exportSection.push(0x00, this.typeSection[2]);
         this.exportSection[2] = this.exportCounter;
         this.exportSection[1] = this.exportSection.length - 2;
 
@@ -653,7 +710,7 @@ class MyVisitor extends BigDataListener {
         this.typeSection.push(0x60, //func
             params_wasm.length); //number of parameters
         this.typeSection = this.typeSection.concat(params_wasm);
-        this.functionSection.push(this.functionSection[2] - 1);
+        this.functionSection.push(this.typeSection[2] - 1);
 
         if (ctx.type) {
             this.typeSection.push(0x01, type.wasm);
@@ -869,7 +926,6 @@ class MyVisitor extends BigDataListener {
 
     // PRINTLN
     exitPrintln(ctx) {
-        this.usages["println"] = true;
         let type = this.typeStack.pop();
         switch(type) {
             case Types.Int:
@@ -984,65 +1040,6 @@ class MyVisitor extends BigDataListener {
                 0x02, //import kind
                 0x00, //limits: flags
                 0x01 //limits: initial
-            );
-        }
-        if(this.usages["println"]) {
-            this.typeSection[2] += 4;
-            this.importSection[2] += 4;
-
-            this.typeSection.splice(3,0,0x60);
-            this.typeSection.splice(4,0,0x01);
-            this.typeSection.splice(5,0,0x7f);
-            this.typeSection.splice(6,0,0x00);
-
-            this.typeSection.splice(7,0,0x60);
-            this.typeSection.splice(8,0,0x01);
-            this.typeSection.splice(9,0,0x7e);
-            this.typeSection.splice(10,0,0x00);
-
-            this.typeSection.splice(11,0,0x60);
-            this.typeSection.splice(12,0,0x01);
-            this.typeSection.splice(13,0,0x7d);
-            this.typeSection.splice(14,0,0x00);
-
-            this.typeSection.splice(15,0,0x60);
-            this.typeSection.splice(16,0,0x01);
-            this.typeSection.splice(17,0,0x7c);
-            this.typeSection.splice(18,0,0x00);
-
-            this.importSection.push(
-                //import println
-                //int
-                0x05,
-                0x70, 0x72, 0x69, 0x6e, 0x74,
-                0x03,
-                0x69, 0x6e, 0x74,
-                0x00,
-                0x00,
-
-                //long
-                0x05,
-                0x70, 0x72, 0x69, 0x6e, 0x74,
-                0x04,
-                0x6c, 0x6f, 0x6e, 0x67,
-                0x00,
-                0x01,
-
-                //float
-                0x05,
-                0x70, 0x72, 0x69, 0x6e, 0x74,
-                0x05,
-                0x66, 0x6c, 0x6f, 0x61, 0x74,
-                0x00,
-                0x02,
-
-                //double
-                0x05,
-                0x70, 0x72, 0x69, 0x6e, 0x74,
-                0x06,
-                0x64, 0x6f, 0x75, 0x62, 0x6c, 0x65,
-                0x00,
-                0x03
             );
         }
 
