@@ -133,9 +133,9 @@ class MyVisitor extends BigDataListener {
     enterProgram(ctx) {
         this.wat += "(module\n" +
             "(import \"print\" \"int\" (func 0 (param i32)))\n" +
-            "(import \"print\" \"float\" (func 1 (param i64)))\n" +
-            "(import \"print\" \"int\" (func 2 (param f32)))\n" +
-            "(import \"print\" \"float\" (func 3 (param f64)))\n" +
+            "(import \"print\" \"long\" (func 1 (param i64)))\n" +
+            "(import \"print\" \"float\" (func 2 (param f32)))\n" +
+            "(import \"print\" \"double\" (func 3 (param f64)))\n" +
             "(memory (import \"js\" \"mem\") 1)\n";
     }
 
@@ -961,19 +961,19 @@ class MyVisitor extends BigDataListener {
         let type = this.typeStack.pop();
         switch(type) {
             case Types.Int:
-                this.wat += "call 0\n";
+                this.wat += "call $printint\n";
                 this.bodySection.push(0x10, 0);
                 break;
             case Types.Long:
-                this.wat += "call 1\n";
+                this.wat += "call $printlong\n";
                 this.bodySection.push(0x10, 1);
                 break;
             case Types.Float:
-                this.wat += "call 2\n";
+                this.wat += "call $printfloat\n";
                 this.bodySection.push(0x10, 2);
                 break;
             case Types.Double:
-                this.wat += "call 3\n";
+                this.wat += "call $printdouble\n";
                 this.bodySection.push(0x10, 3);
                 break;
         }
