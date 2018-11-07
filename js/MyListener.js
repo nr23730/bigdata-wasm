@@ -35,17 +35,9 @@ class MyVisitor extends BigDataListener {
         this.importSection = [
             0x02, //section code
             0x00, //section size calculated afterwards
-            0x01, //number of imports
-
-            //import header 0
-            0x02, //string length
-            0x6a, 0x73, //"js" in hex
-            0x03, //string length
-            0x6d, 0x65, 0x6d, //"mem" in hex
-            0x02, //import kind
-            0x00, //limits: flags
-            0x01, //limits: initial
+            0x00, //number of imports
         ];
+        this.useMemory = false;
         this.functionSection = [
             0x03, //section code
             0x00, //section size calculated afterwards
@@ -784,6 +776,7 @@ class MyVisitor extends BigDataListener {
     //MEMORY
 
     exitMemAssignment(ctx) {
+        this.useMemory = true;
         let type = this.typeStack.pop();
         if (this.typeStack.pop() == Types.Int) {
             switch (type) {
@@ -815,6 +808,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitMemory(ctx) {
+        this.useMemory = true;
         let type = Types.Int;
         if (ctx.parentCtx.varName != undefined)
             type = this.getVarType(ctx.parentCtx.varName.text);
@@ -932,6 +926,18 @@ class MyVisitor extends BigDataListener {
     getWasm() {
         this.typeSection[1] = this.typeSection.length - 2; //set section length
 
+
+        if(this.useMemory)
+            this.importSection.push(
+                //import memory
+                0x02, //string length
+                0x6a, 0x73, //"js" in hex
+                0x03, //string length
+                0x6d, 0x65, 0x6d, //"mem" in hex
+                0x02, //import kind
+                0x00, //limits: flags
+                0x01 //limits: initial
+            );
         this.importSection[1] = this.importSection.length -2;
 
         this.functionSection[1] = this.functionSection.length - 2; //set section length

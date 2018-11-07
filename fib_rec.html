@@ -18,23 +18,19 @@
     Kotlin code to be executed in WebAssembly:<br/>
     <textarea id="code" style="width:350px;height:150px" disabled="disabled">
 fun main(n : Int) : Int {
-   var ret : Int = 0
    if(n <= 1)
-      ret = n
+      return n
    else
-      ret = main(n - 1) + main(n - 2)
-   return ret
+      return main(n - 1) + main(n - 2)
 }
 </textarea> <br/>
     JavaScript code running in comparison:<br/>
     <textarea style="width:350px;height:150px" disabled="disabled">
 function fib(n) {
-   let ret = 0;
    if(n <= 1)
-      ret = n;
+      return n;
    else
-      ret = fib(n - 1) + fib(n - 2);
-   return ret;
+      return fib(n - 1) + fib(n - 2);
 }
 </textarea>
 
@@ -80,12 +76,10 @@ function fib(n) {
         let js_d1 = new Date().getTime();
         console.log("JavaScript compiling started at: " + js_d1);
         eval("function fib(n) {" +
-            "   let ret = 0;" +
             "   if(n <= 1)" +
-            "      ret = n;" +
+            "      return n;" +
             "   else" +
-            "      ret = fib(n - 1) + fib(n - 2);" +
-            "   return ret;" +
+            "      return fib(n - 1) + fib(n - 2);" +
             "};");
         let js_d2 = new Date().getTime();
         console.log("JavaScript compiling finished at: " + js_d2);
