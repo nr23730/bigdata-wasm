@@ -23,6 +23,7 @@ class MyVisitor extends BigDataListener {
     constructor() {
         super();
         this.wat = "";
+        this.usages = [];
         this.binaryMagic = [
             0x00, 0x61, 0x73, 0x6d, //WASM Binary Magic
             0x01, 0x00, 0x00, 0x00, //WASM Version
@@ -37,7 +38,7 @@ class MyVisitor extends BigDataListener {
             0x00, //section size calculated afterwards
             0x00, //number of imports
         ];
-        this.useMemory = false;
+        this.usages["memory"] = false;
         this.functionSection = [
             0x03, //section code
             0x00, //section size calculated afterwards
@@ -589,30 +590,34 @@ class MyVisitor extends BigDataListener {
     }
 
     exitFunctionDefinition(ctx) {
-        let type = this.getTypeObject(ctx.type.text);
+        let type = null;
 
         //end the block containing the function
         this.wat += "end\n";
         this.bodySection.push(0x0b);
 
         //put pseudo value to stack
-        this.wat += type.wat + ".const 0\n";
-        switch(type) {
-        case Types.Boolean:
-            this.bodySection.push(0x41,0x00);
-            break;
-        case Types.Int:
-            this.bodySection.push(0x41,0x00);
-            break;
-        case Types.Long:
-            this.bodySection.push(0x42,0x00);
-            break;
-        case Types.Float:
-            this.bodySection.push(0x43,0x00,0x00,0x00,0x00);
-            break;
-        case Types.Double:
-            this.bodySection.push(0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00);
-            break;
+        if(ctx.type) {
+            type = this.getTypeObject(ctx.type.text);
+            this.wat += type.wat + ".const 0\n";
+
+            switch(type) {
+                case Types.Boolean:
+                    this.bodySection.push(0x41,0x00);
+                    break;
+                case Types.Int:
+                    this.bodySection.push(0x41,0x00);
+                    break;
+                case Types.Long:
+                    this.bodySection.push(0x42,0x00);
+                    break;
+                case Types.Float:
+                    this.bodySection.push(0x43,0x00,0x00,0x00,0x00);
+                    break;
+                case Types.Double:
+                    this.bodySection.push(0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00);
+                    break;
+            }
         }
 
         //end the function
@@ -795,7 +800,7 @@ class MyVisitor extends BigDataListener {
     //MEMORY
 
     exitMemAssignment(ctx) {
-        this.useMemory = true;
+        this.usages["memory"] = true;
         let type = this.typeStack.pop();
         if (this.typeStack.pop() == Types.Int) {
             switch (type) {
@@ -827,7 +832,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitMemory(ctx) {
-        this.useMemory = true;
+        this.usages["memory"] = true;
         let type = Types.Int;
         if (ctx.parentCtx.varName != undefined)
             type = this.getVarType(ctx.parentCtx.varName.text);
@@ -859,6 +864,30 @@ class MyVisitor extends BigDataListener {
             this.bodySection.push(0x02, 0x00);
         } else {
             throw("Invalid data type for memory index")
+        }
+    }
+
+    // PRINTLN
+    exitPrintln(ctx) {
+        this.usages["println"] = true;
+        let type = this.typeStack.pop();
+        switch(type) {
+            case Types.Int:
+                this.wat += "call 0\n";
+                this.bodySection.push(0x10, 0);
+                break;
+            case Types.Long:
+                this.wat += "call 1\n";
+                this.bodySection.push(0x10, 1);
+                break;
+            case Types.Float:
+                this.wat += "call 2\n";
+                this.bodySection.push(0x10, 2);
+                break;
+            case Types.Double:
+                this.wat += "call 3\n";
+                this.bodySection.push(0x10, 3);
+                break;
         }
     }
 
@@ -943,10 +972,9 @@ class MyVisitor extends BigDataListener {
      * @returns {number[]} wasm code generated through compiling
      */
     getWasm() {
-        this.typeSection[1] = this.typeSection.length - 2; //set section length
+        if(this.usages["memory"]) {
+            this.importSection[2]++;
 
-
-        if(this.useMemory)
             this.importSection.push(
                 //import memory
                 0x02, //string length
@@ -957,6 +985,68 @@ class MyVisitor extends BigDataListener {
                 0x00, //limits: flags
                 0x01 //limits: initial
             );
+        }
+        if(this.usages["println"]) {
+            this.typeSection[2] += 4;
+            this.importSection[2] += 4;
+
+            this.typeSection.splice(3,0,0x60);
+            this.typeSection.splice(4,0,0x01);
+            this.typeSection.splice(5,0,0x7f);
+            this.typeSection.splice(6,0,0x00);
+
+            this.typeSection.splice(7,0,0x60);
+            this.typeSection.splice(8,0,0x01);
+            this.typeSection.splice(9,0,0x7e);
+            this.typeSection.splice(10,0,0x00);
+
+            this.typeSection.splice(11,0,0x60);
+            this.typeSection.splice(12,0,0x01);
+            this.typeSection.splice(13,0,0x7d);
+            this.typeSection.splice(14,0,0x00);
+
+            this.typeSection.splice(15,0,0x60);
+            this.typeSection.splice(16,0,0x01);
+            this.typeSection.splice(17,0,0x7c);
+            this.typeSection.splice(18,0,0x00);
+
+            this.importSection.push(
+                //import println
+                //int
+                0x05,
+                0x70, 0x72, 0x69, 0x6e, 0x74,
+                0x03,
+                0x69, 0x6e, 0x74,
+                0x00,
+                0x00,
+
+                //long
+                0x05,
+                0x70, 0x72, 0x69, 0x6e, 0x74,
+                0x04,
+                0x6c, 0x6f, 0x6e, 0x67,
+                0x00,
+                0x01,
+
+                //float
+                0x05,
+                0x70, 0x72, 0x69, 0x6e, 0x74,
+                0x05,
+                0x66, 0x6c, 0x6f, 0x61, 0x74,
+                0x00,
+                0x02,
+
+                //double
+                0x05,
+                0x70, 0x72, 0x69, 0x6e, 0x74,
+                0x06,
+                0x64, 0x6f, 0x75, 0x62, 0x6c, 0x65,
+                0x00,
+                0x03
+            );
+        }
+
+        this.typeSection[1] = this.typeSection.length - 2; //set section length
         this.importSection[1] = this.importSection.length -2;
 
         this.functionSection[1] = this.functionSection.length - 2; //set section length

@@ -129,11 +129,11 @@ BigDataListener.prototype.exitFalseBlock = function(ctx) {
 
 
 // Enter a parse tree produced by BigDataParser#Return.
-BigDataListener.prototype.enterReturn = function (ctx) {
+BigDataListener.prototype.enterReturn = function(ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#Return.
-BigDataListener.prototype.exitReturn = function (ctx) {
+BigDataListener.prototype.exitReturn = function(ctx) {
 };
 
 
@@ -215,6 +215,15 @@ BigDataListener.prototype.enterMemAssignment = function(ctx) {
 
 // Exit a parse tree produced by BigDataParser#memAssignment.
 BigDataListener.prototype.exitMemAssignment = function(ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#println.
+BigDataListener.prototype.enterPrintln = function(ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#println.
+BigDataListener.prototype.exitPrintln = function(ctx) {
 };
 
 

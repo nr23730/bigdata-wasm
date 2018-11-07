@@ -38,6 +38,7 @@ statement
 	|   varDeclaration
 	|   assignment
 	|   memAssignment
+	|   println
 	;
 
 statementList
@@ -100,6 +101,10 @@ assignment
 
 memAssignment
     :   'memory' '[' expression ']' '=' expr=expressionList
+    ;
+
+println
+    :   'println' '(' expression ')'
     ;
 
 expression
