@@ -587,21 +587,53 @@ class MyVisitor extends BigDataListener {
     //LOGIC OPERATIONS
 
     exitLAND(ctx) {
-        this.wat += this.typeStack.pop().wat + ".and\n";
-        this.typeStack.pop();
-
-        //result will be boolean
-        this.bodySection.push(0x71);
-        this.typeStack.push(Types.Boolean)
+        let type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
+            switch (type) {
+                case Types.Boolean:
+                    this.wat += type.wat + ".and\n";
+                    this.bodySection.push(0x71);
+                    break;
+                case Types.Int:
+                    this.wat += type.wat + ".and\n";
+                    this.bodySection.push(0x71);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".and\n";
+                    this.bodySection.push(0x83);
+                    break;
+            }
+            //result will be boolean
+            this.typeStack.push(Types.Boolean)
+        } else {
+            throw("Comparison of two non-equal types!");
+        }
     }
 
     exitLOR(ctx) {
-        this.wat += this.typeStack.pop().wat + ".or\n";
-        this.typeStack.pop();
-
-        //result will be boolean
-        this.bodySection.push(0x72);
-        this.typeStack.push(Types.Boolean)
+        let type = this.typeStack.pop();
+        if (type == this.typeStack.pop()) {
+            //put instruction for determined type on stack
+            switch (type) {
+                case Types.Boolean:
+                    this.wat += type.wat + ".or\n";
+                    this.bodySection.push(0x83);
+                    break;
+                case Types.Int:
+                    this.wat += type.wat + ".or\n";
+                    this.bodySection.push(0x83);
+                    break;
+                case Types.Long:
+                    this.wat += type.wat + ".or\n";
+                    this.bodySection.push(0x84);
+                    break;
+            }
+            //result will be boolean
+            this.typeStack.push(Types.Boolean)
+        } else {
+            throw("Comparison of two non-equal types!");
+        }
     }
 
     // FUNCTION DEFINITION / FUNCTION CALL
