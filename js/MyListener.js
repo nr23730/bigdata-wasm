@@ -648,14 +648,6 @@ class MyVisitor extends BigDataListener {
         //assign a new number
         this.functions.set(ctx.funcName.text, this.functions.size);
 
-        //replace placeholders calling this function with its id
-        for (let i = 0; i < this.funcReplace.length; i++) {
-            if (this.bodySection[this.funcReplace[i]] == this.currentFunc) {
-                this.bodySection[this.funcReplace[i]] = this.functions.get(this.bodySection[this.funcReplace[i]]);
-                this.funcReplace.splice(i, 1);
-            }
-        }
-
         //get a new map to store vars
         this.variables.set(this.currentFunc, new Map());
 
@@ -679,6 +671,15 @@ class MyVisitor extends BigDataListener {
     }
 
     exitFunctionDefinition(ctx) {
+        //replace placeholders calling this function with its id
+        for (let i = 0; i < this.funcReplace.length; i++) {
+            if (this.bodySection[this.funcReplace[i]] == this.currentFunc) {
+                this.bodySection[this.funcReplace[i]] = this.functions.get(this.bodySection[this.funcReplace[i]]);
+                this.funcReplace.splice(i, 1);
+                i--;
+            }
+        }
+
         let type = null;
 
         //end the block containing the function

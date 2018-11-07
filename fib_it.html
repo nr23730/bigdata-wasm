@@ -73,7 +73,14 @@ function fib(n) {
         let listener = new MyListener(parser);
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
         let wasmModule = new WebAssembly.Module(new Uint8Array(listener.getWasm()));
-        let wasmInstance = new WebAssembly.Instance(wasmModule);
+        let wasmInstance = new WebAssembly.Instance(wasmModule, {
+            print: {
+                int: console.log,
+                long: console.log,
+                float: console.log,
+                double: console.log
+            }
+        });
         main = wasmInstance.exports.main;
         let wasm_d2 = new Date().getTime();
         console.log("WebAssembly compiling finished at: " + wasm_d2);
