@@ -23,7 +23,7 @@ functionParameter
 
 functionBody
     :   block
-    |   '=' expression;
+    |   '=' (expression | statement);
 
 block
     :   statement
