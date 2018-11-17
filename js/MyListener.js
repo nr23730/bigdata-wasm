@@ -129,12 +129,11 @@ class MyVisitor extends BigDataListener {
         this.loophelper_wat = [];
         this.loophelper_wasm = [];
 
-        //automatic glue generation
+        //automatic glue and export generation
         this.glue = {
             print: {int: console.log, long: console.log, float: console.log, double: console.log}
         };
         this.exportCode = "";
-        this.memoryName = "memory";
     }
 
     enterProgram(ctx) {
@@ -668,7 +667,6 @@ class MyVisitor extends BigDataListener {
         this.exportSection[2] = this.exportCounter;
         this.exportSection[1] = this.exportSection.length - 2;
         this.exportCode += "" + this.currentFunc + " = wasmInstance.exports." + this.currentFunc + "; ";
-        console.log(this.exportCode);
 
         //init function body
         this.bodySection.push(0x00, 0x00); //temporary length
@@ -788,7 +786,7 @@ class MyVisitor extends BigDataListener {
 
     enterTrueBlock(ctx) {
         if (this.typeStack.pop() != Types.Boolean)
-            throw("Non expected data type. Expected: " + Types.Boolean.string)
+            throw("Non expected data type. Expected: " + Types.Boolean.string);
         //branch if integer on stack indicates so
         this.wat += "if\n";
         this.bodySection.push(0x04, 0x40);

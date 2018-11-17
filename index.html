@@ -55,7 +55,8 @@ fun main(mul : Int) : Int {
         parser.buildParseTrees = true;
         let tree = parser.program();
         let listener = new MyListener(parser);
-        listener.memoryName = Object.keys({memory})[0];
+        listener.glue["js"] = {mem: memory};
+
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
         document.getElementById('wat').innerText = "WebAssembly-Text (WAT):\n\n" + listener.wat;
         wasm = listener.getWasm();
