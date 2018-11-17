@@ -9,6 +9,8 @@ So the main goal is to execute generated code way faster using the WebAssembly V
 
 The demo contains a few examples but also offers the option to try your own code.
 
+Note: glue and exports will be automatically generated.
+
 ## Supported features
 
 - function definitions (0-n params, 0-1 returns)
@@ -22,6 +24,8 @@ The demo contains a few examples but also offers the option to try your own code
 - do...while loops
 - while loops
 - for loops
+- println
+- linear memory access
 
 **Coming soon:** Global variables
 
