@@ -17,11 +17,11 @@
     <input id="n-value" type="text" value="10"/><br/>
     Kotlin code to be executed in WebAssembly:<br/>
     <textarea id="code" style="width:350px;height:150px" disabled="disabled">
-fun main(n : Int) : Int {
+fun fib(n : Int) : Int {
    if(n <= 1)
       return n
    else
-      return main(n - 1) + main(n - 2)
+      return fib(n - 1) + fib(n - 2)
 }
 </textarea> <br/>
     JavaScript code running in comparison:<br/>
@@ -45,8 +45,6 @@ function fib(n) {
     <div id="result2" style="clear:both;font-weight:bold;"></div>
 </div>
 <script type="text/javascript">
-    let main;
-
     let antlr4 = require('antlr4/index');
     let BigDataLexer = require('parser/BigDataLexer');
     let BigDataParser = require('parser/BigDataParser');
@@ -65,18 +63,11 @@ function fib(n) {
         let listener = new MyListener(parser);
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
         let wasmModule = new WebAssembly.Module(new Uint8Array(listener.getWasm()));
-        let wasmInstance = new WebAssembly.Instance(wasmModule, {
-            print: {
-                int: console.log,
-                long: console.log,
-                float: console.log,
-                double: console.log
-            }
-        });
-        main = wasmInstance.exports.main;
+        let wasmInstance = new WebAssembly.Instance(wasmModule, listener.glue);
+        eval(listener.exportCode);
         let wasm_d2 = new Date().getTime();
         console.log("WebAssembly compiling finished at: " + wasm_d2);
-        document.getElementById('result').innerText = "WebAssembly-Output:\n" + main(n);
+        document.getElementById('result').innerText = "WebAssembly-Output:\n" + fib(n);
         let wasm_d3 = new Date().getTime();
         console.log("WebAssembly execution finished at: " + wasm_d3);
         console.log("WebAssembly compile&run took:" + (wasm_d3 - wasm_d1) + "ms");
