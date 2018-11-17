@@ -27,8 +27,6 @@ Note: glue and exports will be automatically generated.
 - println
 - linear memory access
 
-**Coming soon:** Global variables
-
 ## Currently supported data types
 
 - Boolean *(i32)*
