@@ -5,8 +5,7 @@ program
     ;
 
 programPart
-    :   //varDeclaration      #ProgPartVarDeclaration
-	    functionDefinition	#ProgPartFunctionDefinition
+	:   functionDefinition	#ProgPartFunctionDefinition
 	;
 
 functionDefinition
@@ -14,7 +13,7 @@ functionDefinition
     ;
 
 parameterDeclaration
-    :   declarations+=functionParameter (',' declarations+=functionParameter)*
+    :   functionParameter (',' functionParameter)*
     ;
 
 functionParameter
@@ -46,11 +45,11 @@ statementList
     ;
 
 functionCall
-    :   funcName=IDENTIFIER '(' arguments=expressionList* ')'
+    :   funcName=IDENTIFIER '(' expressionList* ')'
     ;
 
 ifStatement
-    :   'if' '(' condition=expression ')' onTrue=trueBlock ('else' onFalse=falseBlock)?
+    :   'if' '(' expression ')' trueBlock ('else' falseBlock)?
     ;
 
 trueBlock
@@ -92,15 +91,15 @@ forExpression
     ;
 
 varDeclaration
-    :   'var' varName=IDENTIFIER ':' type=TYPES '=' expr=expression
+    :   'var' varName=IDENTIFIER ':' type=TYPES '=' expression
     ;
 
 assignment
-    :   varName=IDENTIFIER '=' expr=expression
+    :   varName=IDENTIFIER '=' expression
     ;
 
 memAssignment
-    :   'memory' '[' expression ']' '=' expr=expressionList
+    :   'memory' '[' expression ']' '=' expressionList
     ;
 
 println
@@ -116,14 +115,14 @@ expression
     |   '++' varName=IDENTIFIER                 #PreIncrement
     |   '--' varName=IDENTIFIER                 #PreDecrement
 
-    |   left=expression '/' right=expression    #Div
-    |	left=expression '*' right=expression    #Mult
+    |   expression '/' expression    #Div
+    |	expression '*' expression    #Mult
 
-    |   left=expression '-' right=expression    #Minus
-    |	left=expression '+' right=expression    #Plus
+    |   expression '-' expression    #Minus
+    |	expression '+' expression    #Plus
 
     |	varName=IDENTIFIER                      #Variable
-    |   'memory' '[' expression ']'                #Memory
+    |   'memory' '[' expression ']'             #Memory
     |	INTEGER                                 #Integer
     |   LONG                                    #Long
     |   FLOAT                                   #Float
@@ -131,20 +130,20 @@ expression
     |   BOOLEANLITERAL                          #Boolean
     |   functionCall                            #Fcall
 
-    |   left=expression '<' right=expression    #LT
-    |   left=expression '<=' right=expression   #LEQ
-    |   left=expression '>' right=expression    #GT
-    |   left=expression '>=' right=expression   #GEQ
+    |   expression '<' expression    #LT
+    |   expression '<=' expression   #LEQ
+    |   expression '>' expression    #GT
+    |   expression '>=' expression   #GEQ
 
-    |   left=expression '==' right=expression   #EQ
-    |   left=expression '!=' right=expression   #NEQ
+    |   expression '==' expression   #EQ
+    |   expression '!=' expression   #NEQ
 
-    |   left=expression '&&' right=expression   #LAND
-    |   left=expression '||' right=expression   #LOR
+    |   expression '&&' expression   #LAND
+    |   expression '||' expression   #LOR
     ;
 
 expressionList
-    :   expressions+=expression (',' expressions+=expression)*
+    :   expression (',' expression)*
     ;
 
 TYPES
@@ -168,6 +167,5 @@ INTEGER:    ('+' | '-')? ([1-9][0-9]*|[0]);
 LONG:   INTEGER 'L';
 FLOAT:  DOUBLE 'F';
 DOUBLE: ('+' | '-')? ([0-9]* '.')? [0-9]+ (('e'|'E') [0-9]+)*;
-STRING: '"' .*? '"';
 
 WHITESPACE: [ \t\n\r]+ -> skip;

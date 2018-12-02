@@ -5,7 +5,7 @@ var BigDataListener = require('./BigDataListener').BigDataListener;
 var grammarFileName = "BigData.g4";
 
 var serializedATN = ["\u0003\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964",
-    "\u00032\u0118\u0004\u0002\t\u0002\u0004\u0003\t\u0003\u0004\u0004\t",
+    "\u00031\u0118\u0004\u0002\t\u0002\u0004\u0003\t\u0003\u0004\u0004\t",
     "\u0004\u0004\u0005\t\u0005\u0004\u0006\t\u0006\u0004\u0007\t\u0007\u0004",
     "\b\t\b\u0004\t\t\t\u0004\n\t\n\u0004\u000b\t\u000b\u0004\f\t\f\u0004",
     "\r\t\r\u0004\u000e\t\u000e\u0004\u000f\t\u000f\u0004\u0010\t\u0010\u0004",
@@ -204,8 +204,8 @@ var symbolicNames = [ null, null, null, null, null, null, null, null, null,
                       null, null, null, null, null, null, null, null, null, 
                       null, null, null, null, null, null, null, null, "TYPES", 
                       "BOOLTYPE", "INTTYPE", "LONGTYPE", "FLOATTYPE", "DOUBLETYPE", 
-                      "BOOLEANLITERAL", "IDENTIFIER", "INTEGER", "LONG", 
-                      "FLOAT", "DOUBLE", "STRING", "WHITESPACE" ];
+                      "BOOLEANLITERAL", "IDENTIFIER", "INTEGER", "LONG",
+    "FLOAT", "DOUBLE", "WHITESPACE"];
 
 var ruleNames =  [ "program", "programPart", "functionDefinition", "parameterDeclaration", 
                    "functionParameter", "functionBody", "block", "statement", 
@@ -280,8 +280,7 @@ BigDataParser.INTEGER = 43;
 BigDataParser.LONG = 44;
 BigDataParser.FLOAT = 45;
 BigDataParser.DOUBLE = 46;
-BigDataParser.STRING = 47;
-BigDataParser.WHITESPACE = 48;
+BigDataParser.WHITESPACE = 47;
 
 BigDataParser.RULE_program = 0;
 BigDataParser.RULE_programPart = 1;
@@ -578,8 +577,6 @@ function ParameterDeclarationContext(parser, parent, invokingState) {
 	antlr4.ParserRuleContext.call(this, parent, invokingState);
     this.parser = parser;
     this.ruleIndex = BigDataParser.RULE_parameterDeclaration;
-    this._functionParameter = null; // FunctionParameterContext
-    this.declarations = []; // of FunctionParameterContexts
     return this;
 }
 
@@ -622,8 +619,7 @@ BigDataParser.prototype.parameterDeclaration = function() {
     try {
         this.enterOuterAlt(localctx, 1);
         this.state = 74;
-        localctx._functionParameter = this.functionParameter();
-        localctx.declarations.push(localctx._functionParameter);
+        this.functionParameter();
         this.state = 79;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
@@ -631,8 +627,7 @@ BigDataParser.prototype.parameterDeclaration = function() {
             this.state = 75;
             this.match(BigDataParser.T__4);
             this.state = 76;
-            localctx._functionParameter = this.functionParameter();
-            localctx.declarations.push(localctx._functionParameter);
+            this.functionParameter();
             this.state = 81;
             this._errHandler.sync(this);
             _la = this._input.LA(1);
@@ -1135,7 +1130,6 @@ function FunctionCallContext(parser, parent, invokingState) {
     this.parser = parser;
     this.ruleIndex = BigDataParser.RULE_functionCall;
     this.funcName = null; // Token
-    this.arguments = null; // ExpressionListContext
     return this;
 }
 
@@ -1190,7 +1184,7 @@ BigDataParser.prototype.functionCall = function() {
         _la = this._input.LA(1);
         while((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << BigDataParser.T__1) | (1 << BigDataParser.T__16) | (1 << BigDataParser.T__20) | (1 << BigDataParser.T__21))) !== 0) || ((((_la - 41)) & ~0x1f) == 0 && ((1 << (_la - 41)) & ((1 << (BigDataParser.BOOLEANLITERAL - 41)) | (1 << (BigDataParser.IDENTIFIER - 41)) | (1 << (BigDataParser.INTEGER - 41)) | (1 << (BigDataParser.LONG - 41)) | (1 << (BigDataParser.FLOAT - 41)) | (1 << (BigDataParser.DOUBLE - 41)))) !== 0)) {
             this.state = 119;
-            localctx.arguments = this.expressionList();
+            this.expressionList();
             this.state = 124;
             this._errHandler.sync(this);
             _la = this._input.LA(1);
@@ -1221,9 +1215,6 @@ function IfStatementContext(parser, parent, invokingState) {
 	antlr4.ParserRuleContext.call(this, parent, invokingState);
     this.parser = parser;
     this.ruleIndex = BigDataParser.RULE_ifStatement;
-    this.condition = null; // ExpressionContext
-    this.onTrue = null; // TrueBlockContext
-    this.onFalse = null; // FalseBlockContext
     return this;
 }
 
@@ -1270,11 +1261,11 @@ BigDataParser.prototype.ifStatement = function() {
         this.state = 128;
         this.match(BigDataParser.T__1);
         this.state = 129;
-        localctx.condition = this.expression(0);
+        this.expression(0);
         this.state = 130;
         this.match(BigDataParser.T__2);
         this.state = 131;
-        localctx.onTrue = this.trueBlock();
+        this.trueBlock();
         this.state = 134;
         this._errHandler.sync(this);
         var la_ = this._interp.adaptivePredict(this._input, 10, this._ctx);
@@ -1282,7 +1273,7 @@ BigDataParser.prototype.ifStatement = function() {
             this.state = 132;
             this.match(BigDataParser.T__9);
             this.state = 133;
-            localctx.onFalse = this.falseBlock();
+            this.falseBlock();
 
         }
     } catch (re) {
@@ -1957,12 +1948,15 @@ function VarDeclarationContext(parser, parent, invokingState) {
     this.ruleIndex = BigDataParser.RULE_varDeclaration;
     this.varName = null; // Token
     this.type = null; // Token
-    this.expr = null; // ExpressionContext
     return this;
 }
 
 VarDeclarationContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
 VarDeclarationContext.prototype.constructor = VarDeclarationContext;
+
+VarDeclarationContext.prototype.expression = function () {
+    return this.getTypedRuleContext(ExpressionContext, 0);
+};
 
 VarDeclarationContext.prototype.IDENTIFIER = function() {
     return this.getToken(BigDataParser.IDENTIFIER, 0);
@@ -1970,10 +1964,6 @@ VarDeclarationContext.prototype.IDENTIFIER = function() {
 
 VarDeclarationContext.prototype.TYPES = function() {
     return this.getToken(BigDataParser.TYPES, 0);
-};
-
-VarDeclarationContext.prototype.expression = function() {
-    return this.getTypedRuleContext(ExpressionContext,0);
 };
 
 VarDeclarationContext.prototype.enterRule = function(listener) {
@@ -2010,7 +2000,7 @@ BigDataParser.prototype.varDeclaration = function() {
         this.state = 182;
         this.match(BigDataParser.T__5);
         this.state = 183;
-        localctx.expr = this.expression(0);
+        this.expression(0);
     } catch (re) {
     	if(re instanceof antlr4.error.RecognitionException) {
 	        localctx.exception = re;
@@ -2036,19 +2026,18 @@ function AssignmentContext(parser, parent, invokingState) {
     this.parser = parser;
     this.ruleIndex = BigDataParser.RULE_assignment;
     this.varName = null; // Token
-    this.expr = null; // ExpressionContext
     return this;
 }
 
 AssignmentContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
 AssignmentContext.prototype.constructor = AssignmentContext;
 
-AssignmentContext.prototype.IDENTIFIER = function() {
-    return this.getToken(BigDataParser.IDENTIFIER, 0);
+AssignmentContext.prototype.expression = function () {
+    return this.getTypedRuleContext(ExpressionContext, 0);
 };
 
-AssignmentContext.prototype.expression = function() {
-    return this.getTypedRuleContext(ExpressionContext,0);
+AssignmentContext.prototype.IDENTIFIER = function() {
+    return this.getToken(BigDataParser.IDENTIFIER, 0);
 };
 
 AssignmentContext.prototype.enterRule = function(listener) {
@@ -2079,7 +2068,7 @@ BigDataParser.prototype.assignment = function() {
         this.state = 186;
         this.match(BigDataParser.T__5);
         this.state = 187;
-        localctx.expr = this.expression(0);
+        this.expression(0);
     } catch (re) {
     	if(re instanceof antlr4.error.RecognitionException) {
 	        localctx.exception = re;
@@ -2104,7 +2093,6 @@ function MemAssignmentContext(parser, parent, invokingState) {
 	antlr4.ParserRuleContext.call(this, parent, invokingState);
     this.parser = parser;
     this.ruleIndex = BigDataParser.RULE_memAssignment;
-    this.expr = null; // ExpressionListContext
     return this;
 }
 
@@ -2153,7 +2141,7 @@ BigDataParser.prototype.memAssignment = function() {
         this.state = 193;
         this.match(BigDataParser.T__5);
         this.state = 194;
-        localctx.expr = this.expressionList();
+        this.expressionList();
     } catch (re) {
     	if(re instanceof antlr4.error.RecognitionException) {
 	        localctx.exception = re;
@@ -2340,8 +2328,6 @@ MemoryContext.prototype.exitRule = function(listener) {
 
 function LTContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2376,8 +2362,6 @@ LTContext.prototype.exitRule = function(listener) {
 
 function LANDContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2494,8 +2478,6 @@ BooleanContext.prototype.exitRule = function(listener) {
 
 function PlusContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2585,8 +2567,6 @@ FcallContext.prototype.exitRule = function(listener) {
 
 function EQContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2648,8 +2628,6 @@ DoubleContext.prototype.exitRule = function(listener) {
 
 function GTContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2684,8 +2662,6 @@ GTContext.prototype.exitRule = function(listener) {
 
 function LORContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2747,8 +2723,6 @@ IntegerContext.prototype.exitRule = function(listener) {
 
 function DivContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2810,8 +2784,6 @@ FloatContext.prototype.exitRule = function(listener) {
 
 function GEQContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2846,8 +2818,6 @@ GEQContext.prototype.exitRule = function(listener) {
 
 function MultContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2909,8 +2879,6 @@ LongContext.prototype.exitRule = function(listener) {
 
 function LEQContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -2945,8 +2913,6 @@ LEQContext.prototype.exitRule = function(listener) {
 
 function NEQContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -3009,8 +2975,6 @@ PreDecrementContext.prototype.exitRule = function(listener) {
 
 function MinusContext(parser, ctx) {
 	ExpressionContext.call(this, parser);
-    this.left = null; // ExpressionContext;
-    this.right = null; // ExpressionContext;
     ExpressionContext.prototype.copyFrom.call(this, ctx);
     return this;
 }
@@ -3200,7 +3164,6 @@ BigDataParser.prototype.expression = function(_p) {
                 switch(la_) {
                 case 1:
                     localctx = new DivContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 228;
                     if (!( this.precpred(this._ctx, 20))) {
@@ -3209,12 +3172,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 229;
                     this.match(BigDataParser.T__22);
                     this.state = 230;
-                    localctx.right = this.expression(21);
+                    this.expression(21);
                     break;
 
                 case 2:
                     localctx = new MultContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 231;
                     if (!( this.precpred(this._ctx, 19))) {
@@ -3223,12 +3185,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 232;
                     this.match(BigDataParser.T__23);
                     this.state = 233;
-                    localctx.right = this.expression(20);
+                    this.expression(20);
                     break;
 
                 case 3:
                     localctx = new MinusContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 234;
                     if (!( this.precpred(this._ctx, 18))) {
@@ -3237,12 +3198,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 235;
                     this.match(BigDataParser.T__24);
                     this.state = 236;
-                    localctx.right = this.expression(19);
+                    this.expression(19);
                     break;
 
                 case 4:
                     localctx = new PlusContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 237;
                     if (!( this.precpred(this._ctx, 17))) {
@@ -3251,12 +3211,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 238;
                     this.match(BigDataParser.T__25);
                     this.state = 239;
-                    localctx.right = this.expression(18);
+                    this.expression(18);
                     break;
 
                 case 5:
                     localctx = new LTContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 240;
                     if (!( this.precpred(this._ctx, 8))) {
@@ -3265,12 +3224,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 241;
                     this.match(BigDataParser.T__26);
                     this.state = 242;
-                    localctx.right = this.expression(9);
+                    this.expression(9);
                     break;
 
                 case 6:
                     localctx = new LEQContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 243;
                     if (!( this.precpred(this._ctx, 7))) {
@@ -3279,12 +3237,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 244;
                     this.match(BigDataParser.T__27);
                     this.state = 245;
-                    localctx.right = this.expression(8);
+                    this.expression(8);
                     break;
 
                 case 7:
                     localctx = new GTContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 246;
                     if (!( this.precpred(this._ctx, 6))) {
@@ -3293,12 +3250,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 247;
                     this.match(BigDataParser.T__28);
                     this.state = 248;
-                    localctx.right = this.expression(7);
+                    this.expression(7);
                     break;
 
                 case 8:
                     localctx = new GEQContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 249;
                     if (!( this.precpred(this._ctx, 5))) {
@@ -3307,12 +3263,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 250;
                     this.match(BigDataParser.T__29);
                     this.state = 251;
-                    localctx.right = this.expression(6);
+                    this.expression(6);
                     break;
 
                 case 9:
                     localctx = new EQContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 252;
                     if (!( this.precpred(this._ctx, 4))) {
@@ -3321,12 +3276,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 253;
                     this.match(BigDataParser.T__30);
                     this.state = 254;
-                    localctx.right = this.expression(5);
+                    this.expression(5);
                     break;
 
                 case 10:
                     localctx = new NEQContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 255;
                     if (!( this.precpred(this._ctx, 3))) {
@@ -3335,12 +3289,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 256;
                     this.match(BigDataParser.T__31);
                     this.state = 257;
-                    localctx.right = this.expression(4);
+                    this.expression(4);
                     break;
 
                 case 11:
                     localctx = new LANDContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 258;
                     if (!( this.precpred(this._ctx, 2))) {
@@ -3349,12 +3302,11 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 259;
                     this.match(BigDataParser.T__32);
                     this.state = 260;
-                    localctx.right = this.expression(3);
+                    this.expression(3);
                     break;
 
                 case 12:
                     localctx = new LORContext(this, new ExpressionContext(this, _parentctx, _parentState));
-                    localctx.left = _prevctx;
                     this.pushNewRecursionContext(localctx, _startState, BigDataParser.RULE_expression);
                     this.state = 261;
                     if (!( this.precpred(this._ctx, 1))) {
@@ -3363,7 +3315,7 @@ BigDataParser.prototype.expression = function(_p) {
                     this.state = 262;
                     this.match(BigDataParser.T__33);
                     this.state = 263;
-                    localctx.right = this.expression(2);
+                    this.expression(2);
                     break;
 
                 } 
@@ -3397,8 +3349,6 @@ function ExpressionListContext(parser, parent, invokingState) {
 	antlr4.ParserRuleContext.call(this, parent, invokingState);
     this.parser = parser;
     this.ruleIndex = BigDataParser.RULE_expressionList;
-    this._expression = null; // ExpressionContext
-    this.expressions = []; // of ExpressionContexts
     return this;
 }
 
@@ -3441,8 +3391,7 @@ BigDataParser.prototype.expressionList = function() {
     try {
         this.enterOuterAlt(localctx, 1);
         this.state = 269;
-        localctx._expression = this.expression(0);
-        localctx.expressions.push(localctx._expression);
+        this.expression(0);
         this.state = 274;
         this._errHandler.sync(this);
         _la = this._input.LA(1);
@@ -3450,8 +3399,7 @@ BigDataParser.prototype.expressionList = function() {
             this.state = 270;
             this.match(BigDataParser.T__4);
             this.state = 271;
-            localctx._expression = this.expression(0);
-            localctx.expressions.push(localctx._expression);
+            this.expression(0);
             this.state = 276;
             this._errHandler.sync(this);
             _la = this._input.LA(1);

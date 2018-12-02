@@ -232,9 +232,7 @@ class MyVisitor extends BigDataListener {
     }
 
     exitVarDeclaration(ctx) {
-        //save value if it already has been initialized
-        if (ctx.expr != null)
-            this.exitAssignment(ctx);
+        this.exitAssignment(ctx);
     }
 
     exitFunctionParameter(ctx) {
@@ -244,8 +242,8 @@ class MyVisitor extends BigDataListener {
 
     exitAssignment(ctx) {
         let type = this.typeStack.pop();
-        //if (type != this.getVarType(ctx.varName.text))
-        //throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string) + ", Found: " + type.string;
+        if (type != this.getVarType(ctx.varName.text))
+            throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string) + ", Found: " + type.string;
         this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x21);
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
