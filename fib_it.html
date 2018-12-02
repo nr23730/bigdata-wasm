@@ -14,7 +14,7 @@
 </ul>
 </p>
 <div id="inputs" style="float:left;">
-    <input id="n-value" type="text" value="10"/><br/>
+    n: <input id="n-value" type="text" value="10"/> iterations: <input id="iterations-value" type="text" value="10000"/><br/>
     Kotlin code to be executed in WebAssembly:<br/>
     <textarea id="code" style="width:350px;height:150px" disabled="disabled">
 fun main(n:Int):Int {
@@ -59,6 +59,7 @@ function fib(n) {
     let MyListener = require('js/MyListener');
     document.getElementById("parse").addEventListener("click", function () {
         let n = document.getElementById("n-value").value;
+        let iterations = document.getElementById("iterations-value").value;
         let wasm_d1 = new Date().getTime();
         console.log("WebAssembly-Compiling started at:" + wasm_d1);
         let input = document.getElementById("code").value;
@@ -75,7 +76,7 @@ function fib(n) {
         eval(listener.exportCode);
         let wasm_d2 = new Date().getTime();
         console.log("WebAssembly compiling finished at: " + wasm_d2);
-        for (let i = 0; i < 100000; i++)
+        for (let i = 0; i < iterations; i++)
             main(n);
         document.getElementById('result').innerText = "WebAssembly-Output:\n" + main(n);
         let wasm_d3 = new Date().getTime();
@@ -95,18 +96,19 @@ function fib(n) {
             "};");
         let js_d2 = new Date().getTime();
         console.log("JavaScript compiling finished at: " + js_d2);
-        for (let i = 0; i < 100000; i++)
+        for (let i = 0; i < iterations; i++)
             fib(n);
-        document.getElementById('result2').innerText = "JavaScript-Output:\n" + fib(n);
         let js_d3 = new Date().getTime();
+        document.getElementById('result2').innerText = "JavaScript-Output:\n" + fib(n);
         console.log("JavaScript execution finished at: " + js_d3);
-        console.log("JavaScript execution execution took: " + (js_d3 - js_d1) + "ms");
-        let wasmtime = wasm_d3 - wasm_d1;
-        let jstime = js_d3 - js_d1;
+        console.log("JavaScript execution execution took: " + (js_d3 - js_d1) + "mu s");
+        let wasmtime = 1000 * (wasm_d3 - wasm_d2);
+        let jstime = 1000 * (js_d3 - js_d2);
+        let text = " won!\n\nWebAssembly: " + wasmtime / iterations + "mu s\nJavaScript: " + jstime / iterations + "mu s";
         if (wasmtime < jstime)
-            alert("WebAssembly won!\n\nWebAssembly: " + wasmtime + "ms\nJavaScript: " + jstime + "ms");
+            alert("WebAssembly" + text);
         else
-            alert("JavaScript won!\n\nWebAssembly: " + wasmtime + "ms\nJavaScript: " + jstime + "ms");
+            alert("JavaScript" + text);
     });
 </script>
 </body>
