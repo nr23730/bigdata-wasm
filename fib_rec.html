@@ -17,11 +17,11 @@
     <input id="n-value" type="text" value="10"/><br/>
     Kotlin code to be executed in WebAssembly:<br/>
     <textarea id="code" style="width:350px;height:150px" disabled="disabled">
-fun fib(n : Int) : Int {
+fun main(n : Int) : Int {
    if(n <= 1)
       return n
    else
-      return fib(n - 1) + fib(n - 2)
+      return main(n - 1) + main(n - 2)
 }
 </textarea> <br/>
     JavaScript code running in comparison:<br/>
@@ -67,7 +67,9 @@ function fib(n) {
         eval(listener.exportCode);
         let wasm_d2 = new Date().getTime();
         console.log("WebAssembly compiling finished at: " + wasm_d2);
-        document.getElementById('result').innerText = "WebAssembly-Output:\n" + fib(n);
+        for (let i = 0; i < 100000; i++)
+            main(n);
+        document.getElementById('result').innerText = "WebAssembly-Output:\n" + main(n);
         let wasm_d3 = new Date().getTime();
         console.log("WebAssembly execution finished at: " + wasm_d3);
         console.log("WebAssembly compile&run took:" + (wasm_d3 - wasm_d1) + "ms");
@@ -81,6 +83,8 @@ function fib(n) {
             "};");
         let js_d2 = new Date().getTime();
         console.log("JavaScript compiling finished at: " + js_d2);
+        for (let i = 0; i < 10000; i++)
+            fib(n);
         document.getElementById('result2').innerText = "JavaScript-Output:\n" + fib(n);
         let js_d3 = new Date().getTime();
         console.log("JavaScript execution finished at: " + js_d3);
