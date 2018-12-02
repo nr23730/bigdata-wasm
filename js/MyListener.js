@@ -1063,7 +1063,7 @@ class MyVisitor extends BigDataListener {
 
     /**
      * Constructs wasm code by concating all single parts
-     * @returns {number[]} wasm code generated through compiling
+     * @returns {Uint8Array} code constructed through compiling
      */
     getWasm() {
         if(this.usages["memory"]) {
@@ -1090,12 +1090,12 @@ class MyVisitor extends BigDataListener {
         this.codeSection[1] = this.codeSection.length - 2; //set section length
 
         //concat all parts to a wasm binary
-        return this.binaryMagic
+        return new Uint8Array(this.binaryMagic
             .concat(this.typeSection)
             .concat(this.importSection)
             .concat(this.functionSection)
             .concat(this.exportSection)
-            .concat(this.codeSection);
+            .concat(this.codeSection));
     }
 }
 

@@ -62,7 +62,7 @@ function fib(n) {
         let tree = parser.program();
         let listener = new MyListener(parser);
         antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
-        let wasmModule = new WebAssembly.Module(new Uint8Array(listener.getWasm()));
+        let wasmModule = new WebAssembly.Module(listener.getWasm());
         let wasmInstance = new WebAssembly.Instance(wasmModule, listener.glue);
         eval(listener.exportCode);
         let wasm_d2 = new Date().getTime();

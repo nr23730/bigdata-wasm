@@ -63,7 +63,7 @@ fun main(mul : Int) : Int {
         console.log(wasm);
         document.getElementById('wasm').innerText = "WebAssembly-Bytecode (WASM):\n\n" + wasm;
 
-        let wasmModule = new WebAssembly.Module(new Uint8Array(wasm));
+        let wasmModule = new WebAssembly.Module(wasm);
         let wasmInstance = new WebAssembly.Instance(wasmModule, listener.glue);
         eval(listener.exportCode);
         document.getElementById('result').innerText = "Output:\n\n" + main(document.getElementById("n-value").value);
