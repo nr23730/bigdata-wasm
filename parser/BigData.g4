@@ -35,6 +35,7 @@ statement
 	|   jump
 	|   loop
 	|   varDeclaration
+	|   valDeclaration
 	|   assignment
 	|   memAssignment
 	|   println
@@ -94,6 +95,10 @@ varDeclaration
     :   'var' varName=IDENTIFIER ':' type=TYPES '=' expression
     ;
 
+valDeclaration
+    :   'val' valName=IDENTIFIER ':' type=TYPES '=' value=(INTEGER | LONG | FLOAT | DOUBLE)
+    ;
+
 assignment
     :   varName=IDENTIFIER '=' expression
     ;
@@ -121,7 +126,7 @@ expression
     |   expression '-' expression    #Minus
     |	expression '+' expression    #Plus
 
-    |	varName=IDENTIFIER                      #Variable
+    |	varName=IDENTIFIER                      #Ident
     |   'memory' '[' expression ']'             #Memory
     |	INTEGER                                 #Integer
     |   LONG                                    #Long

@@ -99,6 +99,9 @@ class MyVisitor extends BigDataListener {
             0x00, //number of functions inserted afterwards
         ];
 
+        //this map will contain maps with values of specified functions
+        this.values = new Map();
+
         //this map will contain maps with variables of specified functions
         this.variables = new Map();
 
@@ -214,16 +217,47 @@ class MyVisitor extends BigDataListener {
     }
 
     // VARIABLES / PARAMETERS
+    enterIdent(ctx) {
+        if (this.values.get(this.currentFunc).has(ctx.varName.text))
+            this.enterValue(ctx);
+        else
+            this.enterVariable(ctx);
+    }
+
+    enterValue(ctx) {
+        let type = this.values.get(this.currentFunc).get(ctx.varName.text)[1];
+        let value = this.values.get(this.currentFunc).get(ctx.varName.text)[0];
+        this.typeStack.push(type);
+        switch (type) {
+            case Types.Int:
+                this.bodySection.push(0x41, this.getLEB128(value));
+                break;
+            case Types.Long:
+                this.bodySection.push(0x42, this.getLEB128(value));
+                break;
+            case Types.Float:
+                this.bodySection.push(0x43, this.getFloat32(value));
+                break;
+            case Types.Double:
+                this.bodySection.push(0x44, this.getFloat64(value));
+                break;
+        }
+        this.wat += type.wat + ".const " + value + "\n";
+    }
 
     enterVariable(ctx) {
         //put variable on type stack
         this.typeStack.push(this.getVarType(ctx.varName.text));
-        //put instrunctino to get a local variable on stack
+        //put instruction to get a local variable on stack
         this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x20);
 
         //put var index on stack
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
+    }
+
+    enterValDeclaration(ctx) {
+        this.values.get(this.currentFunc).set(ctx.valName.text, [ctx.value.text, this.getTypeObject(ctx.type.text)]);
     }
 
     enterVarDeclaration(ctx) {
@@ -654,6 +688,8 @@ class MyVisitor extends BigDataListener {
 
         //get a new map to store vars
         this.variables.set(this.currentFunc, new Map());
+        this.values.set(this.currentFunc, new Map());
+
 
         //export the function
         this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n" +
