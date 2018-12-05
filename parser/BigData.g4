@@ -5,7 +5,7 @@ program
     ;
 
 programPart
-	:   functionDefinition	#ProgPartFunctionDefinition
+	:   functionDefinition
 	;
 
 functionDefinition
@@ -112,39 +112,39 @@ println
     ;
 
 expression
-    :   '(' expression ')'                      #Parenthesis
+    :   '(' expression ')'          #Parenthesis
 
-    |   varName=IDENTIFIER '++'                 #PostIncrement
-    |   varName=IDENTIFIER '--'                 #PostDecrement
+    |   varName=IDENTIFIER '++'     #PostIncrement
+    |   varName=IDENTIFIER '--'     #PostDecrement
 
-    |   '++' varName=IDENTIFIER                 #PreIncrement
-    |   '--' varName=IDENTIFIER                 #PreDecrement
+    |   '++' varName=IDENTIFIER     #PreIncrement
+    |   '--' varName=IDENTIFIER     #PreDecrement
 
-    |   expression '/' expression    #Div
-    |	expression '*' expression    #Mult
+    |   expression '/' expression   #Div
+    |	expression '*' expression   #Mult
 
-    |   expression '-' expression    #Minus
-    |	expression '+' expression    #Plus
+    |   expression '-' expression   #Minus
+    |	expression '+' expression   #Plus
 
-    |	varName=IDENTIFIER                      #Ident
-    |   'memory' '[' expression ']'             #Memory
-    |	INTEGER                                 #Integer
-    |   LONG                                    #Long
-    |   FLOAT                                   #Float
-    |   DOUBLE                                  #Double
-    |   BOOLEANLITERAL                          #Boolean
-    |   functionCall                            #Fcall
+    |	varName=IDENTIFIER          #Ident
+    |   'memory' '[' expression ']' #Memory
+    |	INTEGER                     #Integer
+    |   LONG                        #Long
+    |   FLOAT                       #Float
+    |   DOUBLE                      #Double
+    |   BOOLEANLITERAL              #Boolean
+    |   functionCall                #Fcall
 
-    |   expression '<' expression    #LT
-    |   expression '<=' expression   #LEQ
-    |   expression '>' expression    #GT
-    |   expression '>=' expression   #GEQ
+    |   expression '<' expression   #LT
+    |   expression '<=' expression  #LEQ
+    |   expression '>' expression   #GT
+    |   expression '>=' expression  #GEQ
 
-    |   expression '==' expression   #EQ
-    |   expression '!=' expression   #NEQ
+    |   expression '==' expression  #EQ
+    |   expression '!=' expression  #NEQ
 
-    |   expression '&&' expression   #LAND
-    |   expression '||' expression   #LOR
+    |   expression '&&' expression  #LAND
+    |   expression '||' expression  #LOR
     ;
 
 expressionList

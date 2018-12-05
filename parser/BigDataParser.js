@@ -199,8 +199,8 @@ var decisionsToDFA = atn.decisionToState.map( function(ds, index) { return new a
 
 var sharedContextCache = new antlr4.PredictionContextCache();
 
-var literalNames = [ null, "'fun'", "'('", "')'", "':'", "','", "'='", "'{'", 
-                     "'}'", "'if'", "'else'", "'return'", "'do'", "'while'",
+var literalNames = [ null, "'fun'", "'('", "')'", "':'", "','", "'='", "'{'",
+    "'}'", "'if'", "'else'", "'return'", "'do'", "'while'",
     "'for'", "';'", "'var'", "'val'", "'memory'", "'['",
     "']'", "'println'", "'++'", "'--'", "'/'", "'*'", "'-'",
     "'+'", "'<'", "'<='", "'>'", "'>='", "'=='", "'!='",
@@ -208,8 +208,8 @@ var literalNames = [ null, "'fun'", "'('", "')'", "':'", "','", "'='", "'{'",
     "'Float'", "'Double'"];
 
 var symbolicNames = [ null, null, null, null, null, null, null, null, null, 
-                      null, null, null, null, null, null, null, null, null, 
                       null, null, null, null, null, null, null, null, null,
+    null, null, null, null, null, null, null, null, null,
     null, null, null, null, null, null, null, null, null,
     "TYPES", "BOOLTYPE", "INTTYPE", "LONGTYPE", "FLOATTYPE",
     "DOUBLETYPE", "BOOLEANLITERAL", "IDENTIFIER", "INTEGER",
@@ -218,8 +218,8 @@ var symbolicNames = [ null, null, null, null, null, null, null, null, null,
 var ruleNames =  [ "program", "programPart", "functionDefinition", "parameterDeclaration", 
                    "functionParameter", "functionBody", "block", "statement", 
                    "statementList", "functionCall", "ifStatement", "trueBlock", 
-                   "falseBlock", "jump", "loop", "loopBool", "doWhileLoop", 
-                   "whileLoop", "forLoop", "forExpression", "varDeclaration",
+                   "falseBlock", "jump", "loop", "loopBool", "doWhileLoop",
+    "whileLoop", "forLoop", "forExpression", "varDeclaration",
     "valDeclaration", "assignment", "memAssignment", "println",
     "expression", "expressionList"];
 
@@ -416,38 +416,22 @@ function ProgramPartContext(parser, parent, invokingState) {
 ProgramPartContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
 ProgramPartContext.prototype.constructor = ProgramPartContext;
 
-
- 
-ProgramPartContext.prototype.copyFrom = function(ctx) {
-    antlr4.ParserRuleContext.prototype.copyFrom.call(this, ctx);
-};
-
-
-function ProgPartFunctionDefinitionContext(parser, ctx) {
-	ProgramPartContext.call(this, parser);
-    ProgramPartContext.prototype.copyFrom.call(this, ctx);
-    return this;
-}
-
-ProgPartFunctionDefinitionContext.prototype = Object.create(ProgramPartContext.prototype);
-ProgPartFunctionDefinitionContext.prototype.constructor = ProgPartFunctionDefinitionContext;
-
-BigDataParser.ProgPartFunctionDefinitionContext = ProgPartFunctionDefinitionContext;
-
-ProgPartFunctionDefinitionContext.prototype.functionDefinition = function() {
+ProgramPartContext.prototype.functionDefinition = function () {
     return this.getTypedRuleContext(FunctionDefinitionContext,0);
 };
-ProgPartFunctionDefinitionContext.prototype.enterRule = function(listener) {
+
+ProgramPartContext.prototype.enterRule = function (listener) {
     if(listener instanceof BigDataListener ) {
-        listener.enterProgPartFunctionDefinition(this);
+        listener.enterProgramPart(this);
 	}
 };
 
-ProgPartFunctionDefinitionContext.prototype.exitRule = function(listener) {
+ProgramPartContext.prototype.exitRule = function (listener) {
     if(listener instanceof BigDataListener ) {
-        listener.exitProgPartFunctionDefinition(this);
+        listener.exitProgramPart(this);
 	}
 };
+
 
 
 
@@ -458,7 +442,6 @@ BigDataParser.prototype.programPart = function() {
     var localctx = new ProgramPartContext(this, this._ctx, this.state);
     this.enterRule(localctx, 2, BigDataParser.RULE_programPart);
     try {
-        localctx = new ProgPartFunctionDefinitionContext(this, localctx);
         this.enterOuterAlt(localctx, 1);
         this.state = 61;
         this.functionDefinition();

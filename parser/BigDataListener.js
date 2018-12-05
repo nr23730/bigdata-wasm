@@ -20,12 +20,12 @@ BigDataListener.prototype.exitProgram = function(ctx) {
 };
 
 
-// Enter a parse tree produced by BigDataParser#ProgPartFunctionDefinition.
-BigDataListener.prototype.enterProgPartFunctionDefinition = function(ctx) {
+// Enter a parse tree produced by BigDataParser#programPart.
+BigDataListener.prototype.enterProgramPart = function (ctx) {
 };
 
-// Exit a parse tree produced by BigDataParser#ProgPartFunctionDefinition.
-BigDataListener.prototype.exitProgPartFunctionDefinition = function(ctx) {
+// Exit a parse tree produced by BigDataParser#programPart.
+BigDataListener.prototype.exitProgramPart = function (ctx) {
 };
 
 
