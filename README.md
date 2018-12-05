@@ -5,7 +5,7 @@ When it comes to BigData query processing using code generation JavaScript offer
 So the main goal is to execute generated code way faster using the WebAssembly VM wich is built directly into the web browser.
 
 ## Demo
-[Online-Demo](https://cdn.rawgit.com/nr23730/bigdata-wasm/a957496c/index.html)
+[Online-Demo](https://rawgit.com/nr23730/bigdata-wasm/master/index.html)
 
 The demo contains a few examples but also offers the option to try your own code.
 
