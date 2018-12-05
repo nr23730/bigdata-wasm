@@ -15,6 +15,7 @@ Note: glue and exports will be automatically generated.
 
 - function definitions (0-n params, 0-1 returns)
 - function calls (also recursive)
+- value definitions
 - variable definitions
 - variable assignments
 - if/else

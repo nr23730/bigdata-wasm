@@ -30,7 +30,7 @@ class MyVisitor extends BigDataListener {
         ];
         this.typeSection = [
             0x01, //section code
-            0x00, //section size calculated afterwards
+            //section size calculated afterwards
             0x04, //num types (will get increased when new type added)
             //int
             0x60,
@@ -55,7 +55,7 @@ class MyVisitor extends BigDataListener {
         ];
         this.importSection = [
             0x02, //section code
-            0x00, //section size calculated afterwards
+            //section size calculated afterwards
             0x04, //number of imports
             //int
             0x05,
@@ -89,13 +89,13 @@ class MyVisitor extends BigDataListener {
         this.usages["memory"] = false;
         this.functionSection = [
             0x03, //section code
-            0x00, //section size calculated afterwards
+            //section size calculated afterwards
             0x00 //number of functions
         ];
         this.bodySection = [];
         this.codeSection = [
             0x0a, //section code
-            0x00, //section size calculated afterwards
+            //section size calculated afterwards
             0x00, //number of functions inserted afterwards
         ];
 
@@ -110,7 +110,7 @@ class MyVisitor extends BigDataListener {
 
         //TODO: currently: representing numer of functions
         this.exportCounter = 0;
-        this.exportSection = [0x07, 0x00, 0x00];
+        this.exportSection = [0x07, 0x00];
 
         //temporary variable for fixup of length values
         this.bodySectionlength = 0;
@@ -141,10 +141,10 @@ class MyVisitor extends BigDataListener {
 
     enterProgram(ctx) {
         this.wat += "(module\n" +
-            "(import \"print\" \"int\" (func 0 (param i32)))\n" +
-            "(import \"print\" \"long\" (func 1 (param i64)))\n" +
-            "(import \"print\" \"float\" (func 2 (param f32)))\n" +
-            "(import \"print\" \"double\" (func 3 (param f64)))\n" +
+            "(import \"print\" \"int\" (func $printint (param i32)))\n" +
+            "(import \"print\" \"long\" (func $printlong (param i64)))\n" +
+            "(import \"print\" \"float\" (func $printfloat (param f32)))\n" +
+            "(import \"print\" \"double\" (func $printdouble (param f64)))\n" +
             "(memory (import \"js\" \"mem\") 1)\n";
     }
 
@@ -160,7 +160,7 @@ class MyVisitor extends BigDataListener {
         this.bodySection.push(0x41);
 
         //put the integer on stack
-        this.bodySection = this.bodySection.concat(this.getLEB128(ctx.getText()));
+        this.bodySection = this.bodySection.concat(this.getSignedLEB128(ctx.getText()));
         this.typeStack.push(Types.Int);
     }
 
@@ -170,7 +170,7 @@ class MyVisitor extends BigDataListener {
         this.bodySection.push(0x42);
 
         //put the long on stack
-        this.bodySection = this.bodySection.concat(this.getLEB128(parseInt(ctx.getText())));
+        this.bodySection = this.bodySection.concat(this.getSignedLEB128(parseInt(ctx.getText())));
         this.typeStack.push(Types.Long);
     }
 
@@ -230,10 +230,12 @@ class MyVisitor extends BigDataListener {
         this.typeStack.push(type);
         switch (type) {
             case Types.Int:
-                this.bodySection.push(0x41, this.getLEB128(value));
+                this.bodySection.push(0x41);
+                this.bodySection = this.bodySection.concat(this.getSignedLEB128(value));
                 break;
             case Types.Long:
-                this.bodySection.push(0x42, this.getLEB128(value));
+                this.bodySection.push(0x42);
+                this.bodySection = this.bodySection.concat(this.getSignedLEB128(value));
                 break;
             case Types.Float:
                 this.bodySection.push(0x43, this.getFloat32(value));
@@ -656,11 +658,11 @@ class MyVisitor extends BigDataListener {
             switch (type) {
                 case Types.Boolean:
                     this.wat += type.wat + ".or\n";
-                    this.bodySection.push(0x83);
+                    this.bodySection.push(0x72);
                     break;
                 case Types.Int:
                     this.wat += type.wat + ".or\n";
-                    this.bodySection.push(0x83);
+                    this.bodySection.push(0x72);
                     break;
                 case Types.Long:
                     this.wat += type.wat + ".or\n";
@@ -697,13 +699,12 @@ class MyVisitor extends BigDataListener {
             "(local " + this.currentFunc + ")\n";
         this.exportSection.push(this.currentFunc.length);
         this.exportSection = this.exportSection.concat([].slice.call(this.getUInt8(this.currentFunc)));
-        this.exportSection.push(0x00, this.typeSection[2]);
-        this.exportSection[2] = this.exportCounter;
-        this.exportSection[1] = this.exportSection.length - 2;
+        this.exportSection.push(0x00, this.typeSection[1]);
+        this.exportSection[1] = this.exportCounter;
         this.exportCode += "" + this.currentFunc + " = wasmInstance.exports." + this.currentFunc + "; ";
 
         //init function body
-        this.bodySection.push(0x00, 0x00); //temporary length
+        this.bodySection.push(0x00); //temporary length
         this.bodySectionlength = this.bodySection.length;
 
         //init block containing function
@@ -778,13 +779,13 @@ class MyVisitor extends BigDataListener {
         for (let i = 0; i < this.funcReplace.length; i++)
             this.funcReplace[i] = this.funcReplace[i] + local_wasm.length;
 
-        this.typeSection[2]++;
-        this.functionSection[2]++;
-        this.codeSection[2]++;
+        this.typeSection[1]++;
+        this.functionSection[1]++;
+        this.codeSection[1]++;
         this.typeSection.push(0x60, //func
             params_wasm.length); //number of parameters
         this.typeSection = this.typeSection.concat(params_wasm);
-        this.functionSection.push(this.typeSection[2] - 1);
+        this.functionSection.push(this.typeSection[1] - 1);
 
         if (ctx.type) {
             this.typeSection.push(0x01, type.wasm);
@@ -799,7 +800,10 @@ class MyVisitor extends BigDataListener {
         this.wat = this.wat.replace("(local " + this.currentFunc + ")\n", local_wat);
 
         //fixup function body size
-        this.bodySection[this.bodySectionlength - 2] = this.bodySection.length - this.bodySectionlength + 1;
+        //this.bodySection[this.bodySectionlength - 2] = this.bodySection.length - this.bodySectionlength + 1;
+        let newLength = this.getUnsignedLEB128(this.bodySection.length - this.bodySectionlength + 1);
+        for (let i = 0; i < newLength.length; i++)
+            this.bodySection.splice(this.bodySectionlength - 1 + i, 0, newLength[i]);
     }
 
     exitFunctionCall(ctx) {
@@ -1062,7 +1066,7 @@ class MyVisitor extends BigDataListener {
      * @param int to be converted
      * @returns {Array} value of int in leb128
      */
-    getLEB128(int) {
+    getSignedLEB128(int) {
         let size = Math.ceil(Math.log2(int.length));
         let leb = [];
         let running = true;
@@ -1077,6 +1081,19 @@ class MyVisitor extends BigDataListener {
             }
             else
                 leb.push(temp | 128);
+        }
+        return leb;
+    }
+
+    getUnsignedLEB128(int) {
+        let leb = [];
+        while (int) {
+            let temp = int & 127;
+            int = int >> 7;
+            if (int)
+                leb.push(temp | 128);
+            else
+                leb.push(temp);
         }
         return leb;
     }
@@ -1103,7 +1120,7 @@ class MyVisitor extends BigDataListener {
      */
     getWasm() {
         if(this.usages["memory"]) {
-            this.importSection[2]++;
+            this.importSection[1]++;
 
             this.importSection.push(
                 //import memory
@@ -1117,15 +1134,30 @@ class MyVisitor extends BigDataListener {
             );
         }
 
-        this.typeSection[1] = this.typeSection.length - 2; //set section length
-        this.importSection[1] = this.importSection.length -2;
+        //set section length
+        let typeLength = this.getUnsignedLEB128(this.typeSection.length - 1);
+        for (let i = 0; i < typeLength.length; i++)
+            this.typeSection.splice(1 + i, 0, typeLength[i]);
 
-        this.functionSection[1] = this.functionSection.length - 2; //set section length
+        let importLength = this.getUnsignedLEB128(this.importSection.length - 1);
+        for (let i = 0; i < importLength.length; i++)
+            this.importSection.splice(1 + i, 0, importLength[i]);
+
+        let functionLength = this.getUnsignedLEB128(this.functionSection.length - 1);
+        for (let i = 0; i < functionLength.length; i++)
+            this.functionSection.splice(1 + i, 0, functionLength[i]);
+
+        let exportLength = this.getUnsignedLEB128(this.exportSection.length - 1);
+        for (let i = 0; i < exportLength.length; i++)
+            this.exportSection.splice(1 + i, 0, exportLength[i]);
 
         this.codeSection = this.codeSection.concat(this.bodySection); //body section is part of the code section
-        this.codeSection[1] = this.codeSection.length - 2; //set section length
+        let codeLength = this.getUnsignedLEB128(this.codeSection.length - 1);
+        for (let i = 0; i < codeLength.length; i++)
+            this.codeSection.splice(1 + i, 0, codeLength[i]);
 
         //concat all parts to a wasm binary
+        console.log(this.bodySection);
         return new Uint8Array(this.binaryMagic
             .concat(this.typeSection)
             .concat(this.importSection)

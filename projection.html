@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BigData WebAssembly</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script type="text/javascript" src="lib/require.js"></script>
+</head>
+<body>
+<p>Other Examples:<br/>
+<ul>
+    <li><a href="index.html">Your code</a></li>
+    <li><a href="fib_rec.html">Fibonacci (recursive)</a></li>
+    <li><a href="fib_it.html">Fibonacci (iterative)</a></li>
+    <li><a href="projection.html">Projection</a></li>
+</ul>
+</p>
+<div id="inputs" style="float:left;">
+    n: <input id="n-value" type="text" value="10"/> iterations: <input id="iterations-value" type="text" value="10000"/><br/>
+    Kotlin code to be executed in WebAssembly:<br/>
+    <textarea id="code" style="width:350px;height:150px" disabled="disabled">
+fun main(mode : Boolean) {
+   val buffersize:Int = 4096
+   var active:Int = 1
+   if(mode)
+      active = 0
+   val intsize:Int = 4
+   var columns:Int = memory[active * buffersize]
+   var rows:Int = memory[active * buffersize + intsize]
+   var index:Int = 2 * intsize
+   var column:Int = 0
+   var outvalues:Int = 2 * intsize
+   val outcolumns:Int = 3
+
+   while(index < buffersize && column < columns) {
+      if(column == 0 || column == 5 || column == 6) {
+         memory[(2 + active) * buffersize + outvalues] = memory[active * buffersize + index]
+         outvalues = outvalues + intsize
+         index = index + intsize
+         for(var i:Int = 0; i < rows; i++) {
+            memory[(2 + active) * buffersize + outvalues] = memory[active * buffersize + index]
+            outvalues = outvalues + intsize
+            index = index + intsize
+         }
+      } else {
+         index = index + (rows + 1) * intsize
+      }
+      column = column + 1
+   }
+   memory[(2 + active) * buffersize] = outcolumns
+   memory[(2 + active) * buffersize + intsize] = rows
+}
+</textarea> <br/>
+    JavaScript code running in comparison:<br/>
+    <textarea style="width:350px;height:150px" disabled="disabled">
+function proj(mode) {
+   let buffersize = 1024;
+   let active = 1;
+   if(mode)
+      active = 0;
+   let intsize = 1;
+   let columns = i32[active * buffersize];
+   let rows = i32[active * buffersize + intsize];
+   let index = 2 * intsize;
+   let column = 0;
+   let outvalues = 2 * intsize;
+   let outcolumns = 3;
+
+   while(index < buffersize && column < columns) {
+      if(column == 0 || column == 5 || column == 6) {
+         i32[(2 + active) * buffersize + outvalues] = i32[active * buffersize + index];
+         outvalues = outvalues + intsize;
+         index = index + intsize;
+         for(let i = 0; i < rows; i++) {
+            i32[(2 + active) * buffersize + outvalues] = i32[active * buffersize + index];
+            outvalues = outvalues + intsize;
+            index = index + intsize;
+         }
+      } else {
+         index = index + (rows + 1) * intsize;
+      }
+      column = column + 1;
+   }
+   i32[(2 + active) * buffersize] = outcolumns;
+   i32[(2 + active) * buffersize + intsize] = rows;
+}
+</textarea>
+
+    <br/>
+    <button id="parse">compile + execute</button>
+    <br/>
+    Note: Clicking on the button will make the compiler run with the code above.<br/>
+    If you just want to run the already compiled function again,<br/>
+    please open your JavaScript console and type: "main(yourvalue)".
+    <br/><br/>
+    <div id="result" style="clear:both;font-weight:bold;"></div>
+    <div id="result2" style="clear:both;font-weight:bold;"></div>
+</div>
+<script type="text/javascript">
+    var memory = new WebAssembly.Memory({initial: 1});
+    var i32 = new Uint32Array(memory.buffer);
+    i32[0] = 10;
+    i32[1] = 80;
+    for (let i = 0; i < 10; i++)
+        for (let j = 0; j < 81; j++)
+            i32[3 + i * 81 + j] = i;
+    for (let i = 0; i < 10; i++)
+        i32[2 + 81 * i] = 117;
+
+    i32[1024] = 10;
+    i32[1025] = 80;
+    for (let i = 0; i < 10; i++)
+        for (let j = 0; j < 81; j++)
+            i32[1027 + i * 81 + j] = 100 + i;
+    for (let i = 0; i < 10; i++)
+        i32[1026 + 81 * i] = 117;
+    let antlr4 = require('antlr4/index');
+    let BigDataLexer = require('parser/BigDataLexer');
+    let BigDataParser = require('parser/BigDataParser');
+    let MyListener = require('js/MyListener');
+    document.getElementById("parse").addEventListener("click", function () {
+        let n = document.getElementById("n-value").value;
+        let iterations = document.getElementById("iterations-value").value;
+        let wasm_d1 = new Date().getTime();
+        console.log("WebAssembly-Compiling started at:" + wasm_d1);
+        let input = document.getElementById("code").value;
+        let chars = new antlr4.InputStream(input);
+        let lexer = new BigDataLexer.BigDataLexer(chars);
+        let tokens = new antlr4.CommonTokenStream(lexer);
+        let parser = new BigDataParser.BigDataParser(tokens);
+        parser.buildParseTrees = true;
+        let tree = parser.program();
+        let listener = new MyListener(parser);
+        listener.glue["js"] = {mem: memory};
+        antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
+        let wasmModule = new WebAssembly.Module(listener.getWasm());
+        let wasmInstance = new WebAssembly.Instance(wasmModule, listener.glue);
+        eval(listener.exportCode);
+        let wasm_d2 = new Date().getTime();
+        console.log("WebAssembly compiling finished at: " + wasm_d2);
+        for (let i = 0; i < iterations / 2; i++) {
+            main(true);
+            main(false);
+        }
+        let wasm_d3 = new Date().getTime();
+        console.log("WebAssembly execution finished at: " + wasm_d3);
+        console.log("WebAssembly compile&run took:" + (wasm_d3 - wasm_d1) + "ms");
+        let js_d1 = new Date().getTime();
+        console.log("JavaScript compiling started at: " + js_d1);
+        eval("function proj(mode) {" +
+            "   let buffersize = 1024;" +
+            "   let active = 1;" +
+            "   if(mode)" +
+            "      active = 0;" +
+            "   let intsize = 1;" +
+            "   let columns = i32[active * buffersize];" +
+            "   let rows = i32[active * buffersize + intsize];" +
+            "   let index = 2 * intsize;" +
+            "   let column = 0;" +
+            "   let outvalues = 2 * intsize;" +
+            "   let outcolumns = 3;" +
+            "" +
+            "   while(index < buffersize && column < columns) {" +
+            "      if(column == 0 || column == 5 || column == 6) {" +
+            "         i32[(2 + active) * buffersize + outvalues] = i32[active * buffersize + index];" +
+            "         outvalues = outvalues + intsize;" +
+            "         index = index + intsize;" +
+            "         for(let i = 0; i < rows; i++) {" +
+            "            i32[(2 + active) * buffersize + outvalues] = i32[active * buffersize + index];" +
+            "            outvalues = outvalues + intsize;" +
+            "            index = index + intsize;" +
+            "         }" +
+            "      } else {" +
+            "         index = index + (rows + 1) * intsize;" +
+            "      }" +
+            "      column = column + 1;" +
+            "   }" +
+            "   i32[(2 + active) * buffersize] = outcolumns;" +
+            "   i32[(2 + active) * buffersize + intsize] = rows;" +
+            "}");
+        let js_d2 = new Date().getTime();
+        console.log("JavaScript compiling finished at: " + js_d2);
+        for (let i = 0; i < iterations / 2; i++) {
+            proj(true);
+            proj(false);
+        }
+        let js_d3 = new Date().getTime();
+        console.log("JavaScript execution finished at: " + js_d3);
+        console.log("JavaScript execution execution took: " + (js_d3 - js_d1) + "ms");
+        let wasmtime = 1000 * (wasm_d3 - wasm_d2);
+        let jstime = 1000 * (js_d3 - js_d2);
+        let text = " won!\n\nWebAssembly: " + wasmtime / iterations + "mu s\nJavaScript: " + jstime / iterations + "mu s";
+        if (wasmtime < jstime)
+            alert("WebAssembly" + text);
+        else
+            alert("JavaScript" + text);
+    });
+</script>
+</body>
+</html>
