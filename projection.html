@@ -118,7 +118,6 @@ function proj(mode) {
     let BigDataParser = require('parser/BigDataParser');
     let MyListener = require('js/MyListener');
     document.getElementById("parse").addEventListener("click", function () {
-        let n = document.getElementById("n-value").value;
         let iterations = document.getElementById("iterations-value").value;
         let wasm_d1 = new Date().getTime();
         console.log("WebAssembly-Compiling started at:" + wasm_d1);
