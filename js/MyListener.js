@@ -429,6 +429,7 @@ class MyVisitor extends BigDataListener {
             "i32.sub\n" +
             "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6b, 0x21, this.getVarIndex(ctx.varName.text));
+        this.typeStack.push(Types.Int);
     }
 
     exitPostIncrement(ctx) {
@@ -438,6 +439,7 @@ class MyVisitor extends BigDataListener {
             "i32.add\n" +
             "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
         this.bodySection.push(0x20, this.getVarIndex(ctx.varName.text), 0x20, this.getVarIndex(ctx.varName.text), 0x41, 0x01, 0x6a, 0x21, this.getVarIndex(ctx.varName.text));
+        this.typeStack.push(Types.Int);
     }
 
     //COMPARE OPERATIONS

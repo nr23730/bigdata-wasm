@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BigData WebAssembly</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script type="text/javascript" src="lib/require.js"></script>
+</head>
+<body>
+<p>Other Examples:<br/>
+<ul>
+    <li><a href="index.html">Your code</a></li>
+    <li><a href="fib_rec.html">Fibonacci (recursive)</a></li>
+    <li><a href="fib_it.html">Fibonacci (iterative)</a></li>
+    <li><a href="projection.html">Projection</a></li>
+    <li><a href="cartesian.html">Cartesian product</a></li>
+</ul>
+</p>
+<div id="inputs" style="float:left;">iterations: <input id="iterations-value" type="text" value="10000"/><br/>
+    Kotlin code to be executed in WebAssembly:<br/>
+    <textarea id="code" style="width:350px;height:150px" disabled="disabled">
+fun main(mode : Boolean) {
+   val buffersize:Int = 4096
+   var active:Int = 1
+   if(mode)
+      active = 0
+   val intsize:Int = 4
+   var columns1:Int = memory[active * buffersize]
+   var columns2:Int = memory[(active + 2) * buffersize]
+   var rows1:Int = memory[(active * buffersize ) + intsize]
+   var rows2:Int = memory[(active + 2) * buffersize + intsize]
+   var index1:Int = active * buffersize + 2 * intsize
+   var index2:Int = (active + 2) * buffersize + 2 * intsize
+   var outvalues:Int = 2 * intsize
+   var start2:Int = 0
+   var end2:Int = 0
+
+   memory[(active + 4) * buffersize] = columns1 + columns2
+   memory[(active + 4) * buffersize + intsize] = rows1 * rows2
+   for(var i:Int = 0; i < columns1; i++) {
+         memory[(active + 4) * buffersize + outvalues] = memory[index1]
+         index1 = index1 + intsize
+         outvalues = outvalues + intsize
+      for(var j:Int = 0; j < rows1; j++) {
+         for(var k:Int = 0; k < rows2; k++) {
+            memory[(active + 4) * buffersize + outvalues] = memory[index1]
+            outvalues = outvalues + intsize
+         }
+         index1 = index1 + intsize
+      }
+   }
+   for(var l:Int = 0; l < columns2; l++) {
+      memory[(active + 4) * buffersize + outvalues] = memory[index2]
+      outvalues = outvalues + intsize
+      index2 = index2 + intsize
+      for(var m:Int = 0; m < rows1; m++) {
+         start2 = index2
+         for(var n:Int = 0; n < rows2; n++) {
+            memory[(active + 4) * buffersize + outvalues] = memory[index2]
+            outvalues = outvalues + intsize
+            index2 = index2 + intsize
+            end2 = index2
+            index2 = start2
+         }
+         index2 = end2
+      }
+   }
+}
+</textarea> <br/>
+    JavaScript code running in comparison:<br/>
+    <textarea style="width:350px;height:150px" disabled="disabled">
+function cartesian(mode) {
+   let buffersize = 1024;
+   let active = 1;
+   if(mode)
+      active = 0;
+   let intsize = 1;
+   let columns1 = i32[active * buffersize];
+   let columns2 = i32[(active + 2) * buffersize];
+   let rows1 = i32[(active * buffersize ) + intsize];
+   let rows2 = i32[(active + 2) * buffersize + intsize];
+   let index1 = active * buffersize + 2 * intsize;
+   let index2 = (active + 2) * buffersize + 2 * intsize;
+   let outvalues = 2 * intsize;
+   let start2 = 0;
+   let end2 = 0;
+
+   i32[(active + 4) * buffersize] = columns1 + columns2;
+   i32[(active + 4) * buffersize + intsize] = rows1 * rows2;
+   for(let i = 0; i < columns1; i++) {
+         i32[(active + 4) * buffersize + outvalues] = i32[index1];
+         index1 = index1 + intsize;
+         outvalues = outvalues + intsize;
+      for(let j = 0; j < rows1; j++) {
+         for(let k = 0; k < rows2; k++) {
+            i32[(active + 4) * buffersize + outvalues] = i32[index1];
+            outvalues = outvalues + intsize;
+         }
+         index1 = index1 + intsize;
+      }
+   }
+   for(let l = 0; l < columns2; l++) {
+      i32[(active + 4) * buffersize + outvalues] = i32[index2];
+      outvalues = outvalues + intsize;
+      index2 = index2 + intsize;
+      for(let m = 0; m < rows1; m++) {
+         start2 = index2;
+         for(let n = 0; n < rows2; n++) {
+            i32[(active + 4) * buffersize + outvalues] = i32[index2];
+            outvalues = outvalues + intsize;
+            index2 = index2 + intsize;
+            end2 = index2;
+            index2 = start2;
+         }
+         index2 = end2;
+      }
+   }
+}
+</textarea>
+
+    <br/>
+    <button id="parse">compile + execute</button>
+    <br/>
+    Note: Clicking on the button will make the compiler run with the code above.<br/>
+    If you just want to run the already compiled function again,<br/>
+    please open your JavaScript console and type: "main(yourvalue)".
+    <br/><br/>
+    <div id="result" style="clear:both;font-weight:bold;"></div>
+    <div id="result2" style="clear:both;font-weight:bold;"></div>
+</div>
+<script type="text/javascript">
+    var memory = new WebAssembly.Memory({initial: 1});
+    var i32 = new Uint32Array(memory.buffer);
+    colsf = 2;
+    rowsf = 5;
+    i32[0] = colsf;
+    i32[1] = rowsf;
+    for (let i = 0; i < colsf; i++)
+        for (let j = 0; j < (rowsf + 1); j++)
+            i32[3 + i * (rowsf + 1) + j] = i;
+    for (let i = 0; i < colsf; i++)
+        i32[2 + (rowsf + 1) * i] = 117;
+
+    i32[1024] = colsf;
+    i32[1025] = rowsf;
+    for (let i = 0; i < colsf; i++)
+        for (let j = 0; j < (rowsf + 1); j++)
+            i32[1027 + i * (rowsf + 1) + j] = 100 + i;
+    for (let i = 0; i < colsf; i++)
+        i32[1026 + (rowsf + 1) * i] = 117;
+
+    colsb = 2;
+    rowsb = 5;
+    i32[2048] = colsb;
+    i32[2049] = rowsb;
+    for (let i = 0; i < colsb; i++)
+        for (let j = 0; j < (rowsb + 1); j++)
+            i32[2051 + i * (rowsb + 1) + j] = 200 + i;
+    for (let i = 0; i < colsb; i++)
+        i32[2050 + (rowsb + 1) * i] = 117;
+
+    i32[3072] = colsb;
+    i32[3073] = rowsb;
+    for (let i = 0; i < colsb; i++)
+        for (let j = 0; j < (rowsb + 1); j++)
+            i32[3075 + i * (rowsb + 1) + j] = 300 + i;
+    for (let i = 0; i < colsb; i++)
+        i32[3074 + (rowsb + 1) * i] = 117;
+    let antlr4 = require('antlr4/index');
+    let BigDataLexer = require('parser/BigDataLexer');
+    let BigDataParser = require('parser/BigDataParser');
+    let MyListener = require('js/MyListener');
+    document.getElementById("parse").addEventListener("click", function () {
+        let n = document.getElementById("n-value").value;
+        let iterations = document.getElementById("iterations-value").value;
+        let wasm_d1 = new Date().getTime();
+        console.log("WebAssembly-Compiling started at:" + wasm_d1);
+        let input = document.getElementById("code").value;
+        let chars = new antlr4.InputStream(input);
+        let lexer = new BigDataLexer.BigDataLexer(chars);
+        let tokens = new antlr4.CommonTokenStream(lexer);
+        let parser = new BigDataParser.BigDataParser(tokens);
+        parser.buildParseTrees = true;
+        let tree = parser.program();
+        let listener = new MyListener(parser);
+        listener.glue["js"] = {mem: memory};
+        antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
+        let wasmModule = new WebAssembly.Module(listener.getWasm());
+        let wasmInstance = new WebAssembly.Instance(wasmModule, listener.glue);
+        eval(listener.exportCode);
+        let wasm_d2 = new Date().getTime();
+        console.log("WebAssembly compiling finished at: " + wasm_d2);
+        for (let i = 0; i < iterations / 2; i++) {
+            main(true);
+            main(false);
+        }
+        let wasm_d3 = new Date().getTime();
+        console.log("WebAssembly execution finished at: " + wasm_d3);
+        console.log("WebAssembly compile&run took:" + (wasm_d3 - wasm_d1) + "ms");
+        let js_d1 = new Date().getTime();
+        console.log("JavaScript compiling started at: " + js_d1);
+        eval("function cartesian(mode) {" +
+            "   let buffersize = 1024;" +
+            "   let active = 1;" +
+            "   if(mode)" +
+            "      active = 0;" +
+            "   let intsize = 1;" +
+            "   let columns1 = i32[active * buffersize];" +
+            "   let columns2 = i32[(active + 2) * buffersize];" +
+            "   let rows1 = i32[(active * buffersize ) + intsize];" +
+            "   let rows2 = i32[(active + 2) * buffersize + intsize];" +
+            "   let index1 = active * buffersize + 2 * intsize;" +
+            "   let index2 = (active + 2) * buffersize + 2 * intsize;" +
+            "   let outvalues = 2 * intsize;" +
+            "   let start2 = 0;" +
+            "   let end2 = 0;" +
+            "" +
+            "   i32[(active + 4) * buffersize] = columns1 + columns2;" +
+            "   i32[(active + 4) * buffersize + intsize] = rows1 * rows2;" +
+            "   for(let i = 0; i < columns1; i++) {" +
+            "         i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
+            "         index1 = index1 + intsize;" +
+            "         outvalues = outvalues + intsize;" +
+            "      for(let j = 0; j < rows1; j++) {" +
+            "         for(let k = 0; k < rows2; k++) {" +
+            "            i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
+            "            outvalues = outvalues + intsize;" +
+            "         }" +
+            "         index1 = index1 + intsize;" +
+            "      }" +
+            "   }" +
+            "   for(let l = 0; l < columns2; l++) {" +
+            "      i32[(active + 4) * buffersize + outvalues] = i32[index2];" +
+            "      outvalues = outvalues + intsize;" +
+            "      index2 = index2 + intsize;" +
+            "      for(let m = 0; m < rows1; m++) {" +
+            "         start2 = index2;" +
+            "         for(let n = 0; n < rows2; n++) {" +
+            "            i32[(active + 4) * buffersize + outvalues] = i32[index2];" +
+            "            outvalues = outvalues + intsize;" +
+            "            index2 = index2 + intsize;" +
+            "            end2 = index2;" +
+            "            index2 = start2;" +
+            "         }" +
+            "         index2 = end2;" +
+            "      }" +
+            "   }" +
+            "}");
+        let js_d2 = new Date().getTime();
+        console.log("JavaScript compiling finished at: " + js_d2);
+        for (let i = 0; i < iterations / 2; i++) {
+            cartesian(true);
+            cartesian(false);
+        }
+        let js_d3 = new Date().getTime();
+        console.log("JavaScript execution finished at: " + js_d3);
+        console.log("JavaScript execution execution took: " + (js_d3 - js_d1) + "ms");
+        let wasmtime = 1000 * (wasm_d3 - wasm_d2);
+        let jstime = 1000 * (js_d3 - js_d2);
+        let text = " won!\n\nWebAssembly: " + wasmtime / iterations + "mu s\nJavaScript: " + jstime / iterations + "mu s";
+        if (wasmtime < jstime)
+            alert("WebAssembly" + text);
+        else
+            alert("JavaScript" + text);
+    });
+</script>
+</body>
+</html>

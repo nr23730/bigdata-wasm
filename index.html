@@ -12,6 +12,7 @@
     <li><a href="fib_rec.html">Fibonacci (recursive)</a></li>
     <li><a href="fib_it.html">Fibonacci (iterative)</a></li>
     <li><a href="projection.html">Projection</a></li>
+    <li><a href="cartesian.html">Cartesian product</a></li>
 </ul>
 </p>
 <div id="inputs" style="float:left;">
@@ -42,7 +43,7 @@ fun main(mul : Int) : Int {
     <div id="wasm" style="float:left;width:400px;margin-left:10px;"></div>
 </div>
 <script type="text/javascript">
-    let memory = new WebAssembly.Memory({initial:16384, maximum:16384});
+    let memory = new WebAssembly.Memory({initial: 1});
     let antlr4 = require('antlr4/index');
     let BigDataLexer = require('parser/BigDataLexer');
     let BigDataParser = require('parser/BigDataParser');
