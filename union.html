@@ -13,7 +13,6 @@
     <li><a href="fib_it.html">Fibonacci (iterative)</a></li>
     <li><a href="projection.html">Projection</a></li>
     <li><a href="cartesian.html">Cartesian product</a></li>
-    <li><a href="union.html">Union</a></li>
 </ul>
 </p>
 <div id="inputs" style="float:left;">iterations: <input id="iterations-value" type="text" value="10000"/><br/>
@@ -32,44 +31,30 @@ fun main(mode : Boolean) {
    var index1:Int = active * buffersize + 2 * intsize
    var index2:Int = (active + 2) * buffersize + 2 * intsize
    var outvalues:Int = 2 * intsize
-   var start2:Int = 0
-   var end2:Int = 0
 
-   memory[(active + 4) * buffersize] = columns1 + columns2
-   memory[(active + 4) * buffersize + intsize] = rows1 * rows2
+   memory[(active + 4) * buffersize] = columns1
+   memory[(active + 4) * buffersize + intsize] = rows1 + rows2
    for(var i:Int = 0; i < columns1; i++) {
          memory[(active + 4) * buffersize + outvalues] = memory[index1]
          index1 = index1 + intsize
+         index2 = index2 + intsize
          outvalues = outvalues + intsize
       for(var j:Int = 0; j < rows1; j++) {
-         for(var k:Int = 0; k < rows2; k++) {
-            memory[(active + 4) * buffersize + outvalues] = memory[index1]
-            outvalues = outvalues + intsize
-         }
+         memory[(active + 4) * buffersize + outvalues] = memory[index1]
+         outvalues = outvalues + intsize
          index1 = index1 + intsize
       }
-   }
-   for(var l:Int = 0; l < columns2; l++) {
-      memory[(active + 4) * buffersize + outvalues] = memory[index2]
-      outvalues = outvalues + intsize
-      index2 = index2 + intsize
-      for(var m:Int = 0; m < rows1; m++) {
-         start2 = index2
-         for(var n:Int = 0; n < rows2; n++) {
-            memory[(active + 4) * buffersize + outvalues] = memory[index2]
-            outvalues = outvalues + intsize
-            index2 = index2 + intsize
-            end2 = index2
-            index2 = start2
-         }
-         index2 = end2
+      for(var k:Int = 0; k < rows2; k++) {
+         memory[(active + 4) * buffersize + outvalues] = memory[index2]
+         outvalues = outvalues + intsize
+         index2 = index2 + intsize
       }
    }
 }
 </textarea> <br/>
     JavaScript code running in comparison:<br/>
     <textarea style="width:350px;height:150px" disabled="disabled">
-function cartesian(mode) {
+function union(mode) {
    let buffersize = 1024;
    let active = 1;
    if(mode)
@@ -82,37 +67,23 @@ function cartesian(mode) {
    let index1 = active * buffersize + 2 * intsize;
    let index2 = (active + 2) * buffersize + 2 * intsize;
    let outvalues = 2 * intsize;
-   let start2 = 0;
-   let end2 = 0;
 
-   i32[(active + 4) * buffersize] = columns1 + columns2;
-   i32[(active + 4) * buffersize + intsize] = rows1 * rows2;
+   i32[(active + 4) * buffersize] = columns1;
+   i32[(active + 4) * buffersize + intsize] = rows1 + rows2;
    for(let i = 0; i < columns1; i++) {
          i32[(active + 4) * buffersize + outvalues] = i32[index1];
          index1 = index1 + intsize;
+         index2 = index2 + intsize;
          outvalues = outvalues + intsize;
       for(let j = 0; j < rows1; j++) {
-         for(let k = 0; k < rows2; k++) {
-            i32[(active + 4) * buffersize + outvalues] = i32[index1];
-            outvalues = outvalues + intsize;
-         }
+         i32[(active + 4) * buffersize + outvalues] = i32[index1];
+         outvalues = outvalues + intsize;
          index1 = index1 + intsize;
       }
-   }
-   for(let l = 0; l < columns2; l++) {
-      i32[(active + 4) * buffersize + outvalues] = i32[index2];
-      outvalues = outvalues + intsize;
-      index2 = index2 + intsize;
-      for(let m = 0; m < rows1; m++) {
-         start2 = index2;
-         for(let n = 0; n < rows2; n++) {
-            i32[(active + 4) * buffersize + outvalues] = i32[index2];
-            outvalues = outvalues + intsize;
-            index2 = index2 + intsize;
-            end2 = index2;
-            index2 = start2;
-         }
-         index2 = end2;
+      for(let k = 0; k < rows2; k++) {
+         i32[(active + 4) * buffersize + outvalues] = i32[index2];
+         outvalues = outvalues + intsize;
+         index2 = index2 + intsize;
       }
    }
 }
@@ -198,7 +169,7 @@ function cartesian(mode) {
         console.log("WebAssembly compile&run took:" + (wasm_d3 - wasm_d1) + "ms");
         let js_d1 = new Date().getTime();
         console.log("JavaScript compiling started at: " + js_d1);
-        eval("function cartesian(mode) {" +
+        eval("function union(mode) {" +
             "   let buffersize = 1024;" +
             "   let active = 1;" +
             "   if(mode)" +
@@ -211,45 +182,31 @@ function cartesian(mode) {
             "   let index1 = active * buffersize + 2 * intsize;" +
             "   let index2 = (active + 2) * buffersize + 2 * intsize;" +
             "   let outvalues = 2 * intsize;" +
-            "   let start2 = 0;" +
-            "   let end2 = 0;" +
             "" +
-            "   i32[(active + 4) * buffersize] = columns1 + columns2;" +
-            "   i32[(active + 4) * buffersize + intsize] = rows1 * rows2;" +
+            "   i32[(active + 4) * buffersize] = columns1;" +
+            "   i32[(active + 4) * buffersize + intsize] = rows1 + rows2;" +
             "   for(let i = 0; i < columns1; i++) {" +
             "         i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
             "         index1 = index1 + intsize;" +
+            "         index2 = index2 + intsize;" +
             "         outvalues = outvalues + intsize;" +
             "      for(let j = 0; j < rows1; j++) {" +
-            "         for(let k = 0; k < rows2; k++) {" +
-            "            i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
-            "            outvalues = outvalues + intsize;" +
-            "         }" +
+            "         i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
+            "         outvalues = outvalues + intsize;" +
             "         index1 = index1 + intsize;" +
             "      }" +
-            "   }" +
-            "   for(let l = 0; l < columns2; l++) {" +
-            "      i32[(active + 4) * buffersize + outvalues] = i32[index2];" +
-            "      outvalues = outvalues + intsize;" +
-            "      index2 = index2 + intsize;" +
-            "      for(let m = 0; m < rows1; m++) {" +
-            "         start2 = index2;" +
-            "         for(let n = 0; n < rows2; n++) {" +
-            "            i32[(active + 4) * buffersize + outvalues] = i32[index2];" +
-            "            outvalues = outvalues + intsize;" +
-            "            index2 = index2 + intsize;" +
-            "            end2 = index2;" +
-            "            index2 = start2;" +
-            "         }" +
-            "         index2 = end2;" +
+            "      for(let k = 0; k < rows2; k++) {" +
+            "         i32[(active + 4) * buffersize + outvalues] = i32[index2];" +
+            "         outvalues = outvalues + intsize;" +
+            "         index2 = index2 + intsize;" +
             "      }" +
             "   }" +
             "}");
         let js_d2 = new Date().getTime();
         console.log("JavaScript compiling finished at: " + js_d2);
         for (let i = 0; i < iterations / 2; i++) {
-            cartesian(true);
-            cartesian(false);
+            union(true);
+            union(false);
         }
         let js_d3 = new Date().getTime();
         console.log("JavaScript execution finished at: " + js_d3);
