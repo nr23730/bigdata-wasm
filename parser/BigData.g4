@@ -9,7 +9,7 @@ programPart
 	;
 
 functionDefinition
-    :   'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' (':' type=TYPES)? functionBody
+    :   modifier=('private'|'public')? 'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' (':' type=TYPES)? functionBody
     ;
 
 parameterDeclaration

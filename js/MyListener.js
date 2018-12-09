@@ -105,10 +105,8 @@ class MyVisitor extends BigDataListener {
         //this map will contain maps with variables of specified functions
         this.variables = new Map();
 
-        //TODO: currently: representing current function for var scopes
         this.currentFunc = "";
 
-        //TODO: currently: representing numer of functions
         this.exportCounter = 0;
         this.exportSection = [0x07, 0x00];
 
@@ -681,8 +679,6 @@ class MyVisitor extends BigDataListener {
     // FUNCTION DEFINITION / FUNCTION CALL
 
     enterFunctionDefinition(ctx) {
-        //assume it will be exported / function is public
-        this.exportCounter++;
 
         //this will be the current function for var scope
         this.currentFunc = ctx.funcName.text;
@@ -696,14 +692,17 @@ class MyVisitor extends BigDataListener {
 
 
         //export the function
-        this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n" +
-            "(func $" + this.currentFunc + " (param " + this.currentFunc + ") (result " + this.currentFunc + ")\n" +
-            "(local " + this.currentFunc + ")\n";
-        this.exportSection.push(this.currentFunc.length);
-        this.exportSection = this.exportSection.concat([].slice.call(this.getUInt8(this.currentFunc)));
-        this.exportSection.push(0x00, this.typeSection[1]);
-        this.exportSection[1] = this.exportCounter;
-        this.exportCode += "" + this.currentFunc + " = wasmInstance.exports." + this.currentFunc + "; ";
+        if (ctx.modifier == null || ctx.modifier.text == "public") {
+            this.exportCounter++;
+            this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n" +
+                "(func $" + this.currentFunc + " (param " + this.currentFunc + ") (result " + this.currentFunc + ")\n" +
+                "(local " + this.currentFunc + ")\n";
+            this.exportSection.push(this.currentFunc.length);
+            this.exportSection = this.exportSection.concat([].slice.call(this.getUInt8(this.currentFunc)));
+            this.exportSection.push(0x00, this.typeSection[1]);
+            this.exportSection[1] = this.exportCounter;
+            this.exportCode += "" + this.currentFunc + " = wasmInstance.exports." + this.currentFunc + "; ";
+        }
 
         //init function body
         this.bodySection.push(0x00); //temporary length

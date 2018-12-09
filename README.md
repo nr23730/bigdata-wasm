@@ -14,6 +14,7 @@ Note: glue and exports will be automatically generated.
 ## Supported features
 
 - function definitions (0-n params, 0-1 returns)
+- modifiers (public, private) for functions
 - function calls (also recursive)
 - value definitions
 - variable definitions
