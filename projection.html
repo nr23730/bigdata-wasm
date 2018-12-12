@@ -14,6 +14,7 @@
     <li><a href="projection.html">Projection</a></li>
     <li><a href="cartesian.html">Cartesian product</a></li>
     <li><a href="union.html">Union</a></li>
+    <li><a href="tpch17a.html">TPC-H17a</a></li>
 </ul>
 </p>
 <div id="inputs" style="float:left;">iterations: <input id="iterations-value" type="text" value="10000"/><br/>
@@ -105,7 +106,7 @@ function proj(mode) {
         for (let j = 0; j < 81; j++)
             i32[3 + i * 81 + j] = i;
     for (let i = 0; i < 10; i++)
-        i32[2 + 81 * i] = 117;
+        i32[2 + 81 * i] = 4;
 
     i32[1024] = 10;
     i32[1025] = 80;
@@ -113,7 +114,7 @@ function proj(mode) {
         for (let j = 0; j < 81; j++)
             i32[1027 + i * 81 + j] = 100 + i;
     for (let i = 0; i < 10; i++)
-        i32[1026 + 81 * i] = 117;
+        i32[1026 + 81 * i] = 4;
     let antlr4 = require('antlr4/index');
     let BigDataLexer = require('parser/BigDataLexer');
     let BigDataParser = require('parser/BigDataParser');

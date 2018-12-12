@@ -236,10 +236,10 @@ class MyVisitor extends BigDataListener {
                 this.bodySection = this.bodySection.concat(this.getSignedLEB128(value));
                 break;
             case Types.Float:
-                this.bodySection.push(0x43, this.getFloat32(value));
+                this.bodySection = this.bodySection.concat([].slice.call(this.getFloat32(text)));
                 break;
             case Types.Double:
-                this.bodySection.push(0x44, this.getFloat64(value));
+                this.bodySection = this.bodySection.concat([].slice.call(this.getFloat64(text)));
                 break;
         }
         this.wat += type.wat + ".const " + value + "\n";
@@ -801,7 +801,6 @@ class MyVisitor extends BigDataListener {
         this.wat = this.wat.replace("(local " + this.currentFunc + ")\n", local_wat);
 
         //fixup function body size
-        //this.bodySection[this.bodySectionlength - 2] = this.bodySection.length - this.bodySectionlength + 1;
         let newLength = this.getUnsignedLEB128(this.bodySection.length - this.bodySectionlength + 1);
         for (let i = 0; i < newLength.length; i++)
             this.bodySection.splice(this.bodySectionlength - 1 + i, 0, newLength[i]);
@@ -963,7 +962,7 @@ class MyVisitor extends BigDataListener {
             }
             this.bodySection.push(0x02, 0x00);
         } else {
-            throw("Invalid data type for memory index")
+            throw(ctx.start.line + "Invalid data type for memory index")
         }
     }
 
@@ -972,6 +971,8 @@ class MyVisitor extends BigDataListener {
         let type = Types.Int;
         if (ctx.parentCtx.varName != undefined)
             type = this.getVarType(ctx.parentCtx.varName.text);
+        else if (this.typeStack.length > 0)
+            type = this.typeStack[this.typeStack.length - 2];
         if (this.typeStack.pop() == Types.Int) {
             switch (type) {
                 case Types.Boolean:
@@ -989,7 +990,6 @@ class MyVisitor extends BigDataListener {
                 case Types.Float:
                     this.wat += type.wat + ".load\n";
                     this.bodySection.push(0x2a);
-                    this.typeStack.push(Types.Float);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".load\n";
@@ -1158,7 +1158,6 @@ class MyVisitor extends BigDataListener {
             this.codeSection.splice(1 + i, 0, codeLength[i]);
 
         //concat all parts to a wasm binary
-        console.log(this.bodySection);
         return new Uint8Array(this.binaryMagic
             .concat(this.typeSection)
             .concat(this.importSection)

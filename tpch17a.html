@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BigData WebAssembly</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <script type="text/javascript" src="lib/require.js"></script>
+    <script type="text/javascript" src="lib/papaparse.min.js"></script>
+</head>
+<body>
+<p>Other Examples:<br/>
+<ul>
+    <li><a href="index.html">Your code</a></li>
+    <li><a href="fib_rec.html">Fibonacci (recursive)</a></li>
+    <li><a href="fib_it.html">Fibonacci (iterative)</a></li>
+    <li><a href="projection.html">Projection</a></li>
+    <li><a href="cartesian.html">Cartesian product</a></li>
+    <li><a href="union.html">Union</a></li>
+    <li><a href="tpch17a.html">TPC-H17a</a></li>
+</ul>
+</p>
+<div id="inputs" style="float:left;">
+    lineitem-table: <input id="lineitem" type="file"/><br/>
+    part-table: <input id="part" type="file"/><br/>
+    convert input to bytearrays
+    <button id="convert" onclick="convert()">convert</button>
+    <label id="conversion"></label><br/>
+    Kotlin code to be executed in WebAssembly:<br/>
+    <textarea id="code" style="width:350px;height:150px" disabled="disabled">
+fun main(mode : Boolean) {
+   val buffersize:Int = 65536
+   var active:Int = 1
+   if(mode)
+      active = 0
+   val intsize:Int = 4
+   val doublesize:Int = 8
+   var columns1:Int = memory[active * buffersize]
+   var columns2:Int = memory[(active + 2) * buffersize]
+   var rows1:Int = memory[(active * buffersize ) + intsize]
+   var rows2:Int = memory[(active + 2) * buffersize + intsize]
+   var index1:Int = active * buffersize + 2 * intsize
+   var index2:Int = (active + 2) * buffersize + 3 * intsize
+   var index3:Int = active * buffersize + 3 * intsize
+   var result1:Double = 0.0
+
+   var start2:Int = 0
+
+   index1 = index1 + rows1 * memory[index1] + 2 * intsize
+   start2 = index2
+   for(var i:Int = 0; i < rows1; i++) {
+      index2 = start2
+      for(var j:Int = 0; j < rows2; j++) {
+         if(memory[index1] == memory[index2]) {
+            result1 = result1 + memory[index3]
+        }
+         index2 = index2 + intsize
+      }
+      index1 = index1 + intsize
+      index3 = index3 + doublesize
+   }
+   println(result1)
+
+   result1 = result1 * 0.005
+
+   var result2:Double = 0.0
+   println(result2)
+}
+</textarea> <br/>
+    JavaScript code running in comparison:<br/>
+    <textarea style="width:350px;height:150px" disabled="disabled">
+function union(mode) {
+   let buffersize = 1024;
+   let active = 1;
+   if(mode)
+      active = 0;
+   let intsize = 1;
+   let columns1 = i32[active * buffersize];
+   let columns2 = i32[(active + 2) * buffersize];
+   let rows1 = i32[(active * buffersize ) + intsize];
+   let rows2 = i32[(active + 2) * buffersize + intsize];
+   let index1 = active * buffersize + 2 * intsize;
+   let index2 = (active + 2) * buffersize + 2 * intsize;
+   let outvalues = 2 * intsize;
+
+   i32[(active + 4) * buffersize] = columns1;
+   i32[(active + 4) * buffersize + intsize] = rows1 + rows2;
+   for(let i = 0; i < columns1; i++) {
+         i32[(active + 4) * buffersize + outvalues] = i32[index1];
+         index1 = index1 + intsize;
+         index2 = index2 + intsize;
+         outvalues = outvalues + intsize;
+      for(let j = 0; j < rows1; j++) {
+         i32[(active + 4) * buffersize + outvalues] = i32[index1];
+         outvalues = outvalues + intsize;
+         index1 = index1 + intsize;
+      }
+      for(let k = 0; k < rows2; k++) {
+         i32[(active + 4) * buffersize + outvalues] = i32[index2];
+         outvalues = outvalues + intsize;
+         index2 = index2 + intsize;
+      }
+   }
+}
+</textarea>
+
+    <br/>
+    <button id="parse">compile + execute</button>
+    <br/>
+    Note: Clicking on the button will make the compiler run with the code above.<br/>
+    If you just want to run the already compiled function again,<br/>
+    please open your JavaScript console and type: "main(yourvalue)".
+    <br/><br/>
+    <div id="result" style="clear:both;font-weight:bold;"></div>
+    <div id="result2" style="clear:both;font-weight:bold;"></div>
+</div>
+<script type="text/javascript">
+    function convert() {
+        let lineitem = document.getElementById("lineitem").files[0];
+        let part = document.getElementById("part").files[0];
+
+        linebytes = [];
+        partbytes = [];
+
+        Papa.parse(lineitem, {
+            delimiter: "",	// auto-detect
+            newline: "",	// auto-detect
+            quoteChar: '"',
+            escapeChar: '"',
+            header: false,
+            transformHeader: undefined,
+            dynamicTyping: false,
+            preview: 0,
+            encoding: "",
+            worker: false,
+            comments: false,
+            step: undefined,
+            complete: function (results, file) {
+                linebytes = toByteArray1(results.data)
+            },
+            error: undefined,
+            download: false,
+            skipEmptyLines: false,
+            chunk: undefined,
+            fastMode: undefined,
+            beforeFirstChunk: undefined,
+            withCredentials: undefined,
+            transform: undefined
+        });
+        Papa.parse(part, {
+            delimiter: "",	// auto-detect
+            newline: "",	// auto-detect
+            quoteChar: '"',
+            escapeChar: '"',
+            header: false,
+            transformHeader: undefined,
+            dynamicTyping: false,
+            preview: 0,
+            encoding: "",
+            worker: false,
+            comments: false,
+            step: undefined,
+            complete: function (results, file) {
+                partbytes = toByteArray2(results.data);
+                document.getElementById("conversion").innerText = "finished.";
+            },
+            error: undefined,
+            download: false,
+            skipEmptyLines: false,
+            chunk: undefined,
+            fastMode: undefined,
+            beforeFirstChunk: undefined,
+            withCredentials: undefined,
+            transform: undefined
+        });
+
+    }
+
+    function toByteArray1(arr) {
+        a = [];
+        let factor = 450;
+        for (let p = 0; p < ((arr.length - 1) / factor); p++) {
+            upper = factor * (p + 1);
+            if (upper > arr.length - 1)
+                upper = arr.length - 1;
+            res = [];
+            res = res.concat(convInt(arr[0].length));
+            res = res.concat(convInt(factor));
+            for (let i = 0; i < 4; i++) {
+                res.push(4, 0, 0, 0);
+                console.log(factor * (p + 1));
+                for (let j = factor * p; j < upper; j++) {
+                    res = res.concat(convInt(arr[j][i]));
+                }
+            }
+            for (let i = 4; i < 8; i++) {
+                res.push(8, 0, 0, 0);
+                for (let j = factor * p; j < upper; j++) {
+                    res = res.concat([].slice.call(new Uint8Array(Float32Array.of(arr[j][i]).buffer)));
+                }
+            }
+            for (let i = 8; i < 10; i++) {
+                res.push(1, 0, 0, 0);
+                for (let j = factor * p; j < upper; j++) {
+                    res.push(arr[j][i].charCodeAt(0));
+                }
+            }
+            for (let i = 10; i < 13; i++) {
+                res.push(10, 0, 0, 0);
+                for (let j = factor * p; j < upper; j++) {
+                    for (let k = 0; k < 10; k++)
+                        res.push(arr[j][i].charCodeAt(k));
+                }
+            }
+            for (let i = 13; i < 16; i++) {
+                res.push(0, 0, 0, 0);
+                for (let j = factor * p; j < upper; j++) {
+                    res = res.concat(convInt(arr[j][i].length));
+                    for (let k = 0; k < arr[j][i].length; k++)
+                        res.push(arr[j][i].charCodeAt(k));
+                }
+            }
+            a.push(res);
+        }
+        return a;
+    }
+
+    function toByteArray2(arr) {
+        a = [];
+        let factor = 400;
+        for (let p = 0; p < ((arr.length - 1) / factor); p++) {
+            upper = factor * (p + 1);
+            if (upper > arr.length - 1)
+                upper = arr.length - 1;
+            res = [];
+            res = res.concat(convInt(arr[0].length));
+            res = res.concat(convInt(factor));
+            res.push(4, 0, 0, 0);
+            console.log(factor * (p + 1));
+            for (let j = factor * p; j < upper; j++) {
+                res = res.concat(convInt(arr[j][0]));
+            }
+
+            for (let i = 1; i < 5; i++) {
+                res.push(0, 0, 0, 0);
+                for (let j = factor * p; j < upper; j++) {
+                    res = res.concat(convInt(arr[j][i].length));
+                    for (let k = 0; k < arr[j][i].length; k++)
+                        res.push(arr[j][i].charCodeAt(k));
+                }
+            }
+
+            res.push(4, 0, 0, 0);
+            for (let j = factor * p; j < upper; j++) {
+                res = res.concat(convInt(arr[j][5]));
+            }
+
+            res.push(0, 0, 0, 0);
+            for (let j = factor * p; j < upper; j++) {
+                res = res.concat(convInt(arr[j][i].length));
+                for (let k = 0; k < arr[j][6].length; k++)
+                    res.push(arr[j][6].charCodeAt(k));
+            }
+
+            res.push(8, 0, 0, 0);
+            for (let j = factor * p; j < upper; j++) {
+                for (let k = 0; k < arr[j][7].length; k++)
+                    res = res.concat([].slice.call(new Uint8Array(Float32Array.of(arr[j][7]).buffer)));
+            }
+
+            res.push(0, 0, 0, 0);
+            for (let j = factor * p; j < upper; j++) {
+                res = res.concat(convInt(arr[j][i].length));
+                for (let k = 0; k < arr[j][8].length; k++)
+                    res.push(arr[j][8].charCodeAt(k));
+            }
+
+            a.push(res);
+        }
+        return a;
+    }
+
+    function convInt(int) {
+        leb = [0, 0, 0, 0];
+        i = 0;
+        while (int) {
+            let temp = int & 255;
+            int = int >> 8;
+            leb[i++] = temp;
+        }
+
+        return leb;
+    }
+
+    var memory = new WebAssembly.Memory({initial: 60});
+    var i32 = new Int32Array(memory.buffer);
+    var i8 = new Int8Array(memory.buffer);
+    let antlr4 = require('antlr4/index');
+    let BigDataLexer = require('parser/BigDataLexer');
+    let BigDataParser = require('parser/BigDataParser');
+    let MyListener = require('js/MyListener');
+    document.getElementById("parse").addEventListener("click", function () {
+        let wasm_d1 = new Date().getTime();
+        console.log("WebAssembly-Compiling started at:" + wasm_d1);
+        let input = document.getElementById("code").value;
+        let chars = new antlr4.InputStream(input);
+        let lexer = new BigDataLexer.BigDataLexer(chars);
+        let tokens = new antlr4.CommonTokenStream(lexer);
+        let parser = new BigDataParser.BigDataParser(tokens);
+        parser.buildParseTrees = true;
+        let tree = parser.program();
+        let listener = new MyListener(parser);
+        listener.glue["js"] = {mem: memory};
+        antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
+        let wasmModule = new WebAssembly.Module(listener.getWasm());
+        let wasmInstance = new WebAssembly.Instance(wasmModule, listener.glue);
+        eval(listener.exportCode);
+        let wasm_d2 = new Date().getTime();
+        console.log("WebAssembly compiling finished at: " + wasm_d2);
+        let active = true;
+        for (let i = 0; i < linebytes[0].length; i++)
+            i8[i] = linebytes[0][i];
+        for (let i = 0; i < linebytes[0].length; i++)
+            i8[i + 65536 * 2] = partbytes[0][i];
+        //for (let i = 0; i < linebytes.length; i++) {
+        //for(let j = 0; j < partbytes.length; j++) {
+        main(active);
+        active = !active;
+        //}
+        //}
+        let wasm_d3 = new Date().getTime();
+        console.log("WebAssembly execution finished at: " + wasm_d3);
+        console.log("WebAssembly compile&run took:" + (wasm_d3 - wasm_d1) + "ms");
+        let js_d1 = new Date().getTime();
+        console.log("JavaScript compiling started at: " + js_d1);
+        eval("function union(mode) {" +
+            "   let buffersize = 1024;" +
+            "   let active = 1;" +
+            "   if(mode)" +
+            "      active = 0;" +
+            "   let intsize = 1;" +
+            "   let columns1 = i32[active * buffersize];" +
+            "   let columns2 = i32[(active + 2) * buffersize];" +
+            "   let rows1 = i32[(active * buffersize ) + intsize];" +
+            "   let rows2 = i32[(active + 2) * buffersize + intsize];" +
+            "   let index1 = active * buffersize + 2 * intsize;" +
+            "   let index2 = (active + 2) * buffersize + 2 * intsize;" +
+            "   let outvalues = 2 * intsize;" +
+            "" +
+            "   i32[(active + 4) * buffersize] = columns1;" +
+            "   i32[(active + 4) * buffersize + intsize] = rows1 + rows2;" +
+            "   for(let i = 0; i < columns1; i++) {" +
+            "         i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
+            "         index1 = index1 + intsize;" +
+            "         index2 = index2 + intsize;" +
+            "         outvalues = outvalues + intsize;" +
+            "      for(let j = 0; j < rows1; j++) {" +
+            "         i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
+            "         outvalues = outvalues + intsize;" +
+            "         index1 = index1 + intsize;" +
+            "      }" +
+            "      for(let k = 0; k < rows2; k++) {" +
+            "         i32[(active + 4) * buffersize + outvalues] = i32[index2];" +
+            "         outvalues = outvalues + intsize;" +
+            "         index2 = index2 + intsize;" +
+            "      }" +
+            "   }" +
+            "}");
+        let js_d2 = new Date().getTime();
+        console.log("JavaScript compiling finished at: " + js_d2);
+        //for (let i = 0; i < iterations / 2; i++) {
+        //union(true);
+        //union(false);
+        //}
+        let js_d3 = new Date().getTime();
+        console.log("JavaScript execution finished at: " + js_d3);
+        console.log("JavaScript execution execution took: " + (js_d3 - js_d1) + "ms");
+        let wasmtime = 1000 * (wasm_d3 - wasm_d2);
+        let jstime = 1000 * (js_d3 - js_d2);
+        let text = " won!\n\nWebAssembly: " + wasmtime + "mu s\nJavaScript: " + jstime + "mu s";
+        if (wasmtime < jstime)
+            alert("WebAssembly" + text);
+        else
+            alert("JavaScript" + text);
+    });
+</script>
+</body>
+</html>
