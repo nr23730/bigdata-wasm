@@ -26,7 +26,7 @@
     <label id="conversion"></label><br/>
     Kotlin code to be executed in WebAssembly:<br/>
     <textarea id="code" style="width:350px;height:150px" disabled="disabled">
-fun part1(mode : Boolean):Double {
+fun part1(mode:Boolean):Double {
    val buffersize:Int = 65536
    var active:Int = 1
    if(mode)
@@ -60,6 +60,45 @@ fun part1(mode : Boolean):Double {
    memory[(active + 4) * buffersize + 3 * intsize] = 8
    memory[(active + 4) * buffersize + 4 * intsize] = result1
    return result1
+}
+
+fun part2(result1:Double, mode :Boolean):Double {
+   val buffersize:Int = 65536
+   var active:Int = 1
+   if(mode)
+      active = 0
+   val intsize:Int = 4
+   val doublesize:Int = 8
+   result1 = result1 * 0.005
+   var columns1:Int = memory[active * buffersize]
+   var columns2:Int = memory[(active + 2) * buffersize]
+   var rows1:Int = memory[(active * buffersize ) + intsize]
+   var rows2:Int = memory[(active + 2) * buffersize + intsize]
+   var index1:Int = active * buffersize + 2 * intsize
+   var index2:Int = (active + 2) * buffersize + 3 * intsize
+   var index3:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + intsize + doublesize * rows1)
+   var index4:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + 2 * (intsize + doublesize * rows1))
+   var result2:Double = 0.0
+   var start2:Int = 0
+
+   index1 = index1 + rows1 * memory[index1] + 2 * intsize
+   start2 = index2
+   for(var i:Int = 0; i < rows1; i++) {
+      index2 = start2
+      for(var j:Int = 0; j < rows2; j++) {
+         if(memory[index1] == memory[index2] && result1 > memory[index3])
+            result2 = result2 + memory[index3]
+         index2 = index2 + intsize
+      }
+      index1 = index1 + intsize
+      index3 = index3 + doublesize
+      index4 = index4 + doublesize
+   }
+   memory[(active + 4) * buffersize + intsize] = 1
+   memory[(active + 4) * buffersize + 2 * intsize] = 1
+   memory[(active + 4) * buffersize + 3 * intsize] = 8
+   memory[(active + 4) * buffersize + 4 * intsize] = result2
+   return result2
 }
 </textarea> <br/>
     JavaScript code running in comparison:<br/>
