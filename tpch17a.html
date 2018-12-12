@@ -28,9 +28,9 @@
     <textarea id="code" style="width:350px;height:150px" disabled="disabled">
 fun part1(mode:Boolean):Double {
    val buffersize:Int = 65536
-   var active:Int = 1
+   var active:Int = 0
    if(mode)
-      active = 0
+      active = 1
    val intsize:Int = 4
    val doublesize:Int = 8
    var columns1:Int = memory[active * buffersize]
@@ -39,7 +39,7 @@ fun part1(mode:Boolean):Double {
    var rows2:Int = memory[(active + 2) * buffersize + intsize]
    var index1:Int = active * buffersize + 2 * intsize
    var index2:Int = (active + 2) * buffersize + 3 * intsize
-   var index3:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + intsize + doublesize * rows1)
+   var index3:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize))
    var result1:Double = 0.0
    var start2:Int = 0
 
@@ -48,8 +48,9 @@ fun part1(mode:Boolean):Double {
    for(var i:Int = 0; i < rows1; i++) {
       index2 = start2
       for(var j:Int = 0; j < rows2; j++) {
-         if(memory[index1] == memory[index2])
+         if(memory[index1] == memory[index2]) {
             result1 = result1 + memory[index3]
+         }
          index2 = index2 + intsize
       }
       index1 = index1 + intsize
@@ -76,8 +77,8 @@ fun part2(result1:Double, mode :Boolean):Double {
    var rows2:Int = memory[(active + 2) * buffersize + intsize]
    var index1:Int = active * buffersize + 2 * intsize
    var index2:Int = (active + 2) * buffersize + 3 * intsize
-   var index3:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + intsize + doublesize * rows1)
-   var index4:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + 2 * (intsize + doublesize * rows1))
+   var index3:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize))
+   var index4:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + intsize + doublesize * rows1)
    var result2:Double = 0.0
    var start2:Int = 0
 
@@ -86,8 +87,9 @@ fun part2(result1:Double, mode :Boolean):Double {
    for(var i:Int = 0; i < rows1; i++) {
       index2 = start2
       for(var j:Int = 0; j < rows2; j++) {
-         if(memory[index1] == memory[index2] && result1 > memory[index3])
-            result2 = result2 + memory[index3]
+         if(memory[index1] == memory[index2] && result1 > memory[index3]) {
+            result2 = result2 + memory[index4]
+         }
          index2 = index2 + intsize
       }
       index1 = index1 + intsize
@@ -211,18 +213,19 @@ function union(mode) {
     }
 
     function toByteArray1(arr) {
-        a = [];
+        let a = [];
         let factor = 450;
         for (let p = 0; p < ((arr.length - 1) / factor); p++) {
-            upper = factor * (p + 1);
+            let upper = factor * (p + 1);
             if (upper > arr.length - 1)
                 upper = arr.length - 1;
-            res = [];
+            let length = upper - factor * p;
+            console.log(length);
+            let res = [];
             res = res.concat(convInt(arr[0].length-1));
-            res = res.concat(convInt(upper));
+            res = res.concat(convInt(length));
             for (let i = 0; i < 4; i++) {
                 res.push(4, 0, 0, 0);
-                console.log(factor * (p + 1));
                 for (let j = factor * p; j < upper; j++) {
                     res = res.concat(convInt(arr[j][i]));
                 }
@@ -260,17 +263,18 @@ function union(mode) {
     }
 
     function toByteArray2(arr) {
-        a = [];
-        let factor = 400;
+        let a = [];
+        let factor = 350;
         for (let p = 0; p < ((arr.length - 1) / factor); p++) {
-            upper = factor * (p + 1);
+            let upper = factor * (p + 1);
             if (upper > arr.length - 1)
                 upper = arr.length - 1;
-            res = [];
+            let length = upper - factor * p;
+            console.log(length);
+            let res = [];
             res = res.concat(convInt(arr[0].length-1));
-            res = res.concat(convInt(upper));
+            res = res.concat(convInt(length));
             res.push(4, 0, 0, 0);
-            console.log(factor * (p + 1));
             for (let j = factor * p; j < upper; j++) {
                 res = res.concat(convInt(arr[j][0]));
             }
@@ -326,7 +330,7 @@ function union(mode) {
         return leb;
     }
 
-    var memory = new WebAssembly.Memory({initial: 60});
+    var memory = new WebAssembly.Memory({initial: 600});
     var i32 = new Int32Array(memory.buffer);
     var i8 = new Int8Array(memory.buffer);
     let antlr4 = require('antlr4/index');
@@ -352,40 +356,63 @@ function union(mode) {
         let wasm_d2 = new Date().getTime();
         console.log("WebAssembly compiling finished at: " + wasm_d2);
         let active = 1;
-        result1 = [];
+        //let result1 = [];
         res = 0.0;
-        for (let a = 0; a < linebytes[0].length; a++)
-            i8[a] = linebytes[0][a];
-        for (let b = 0; b < partbytes[0].length; b++)
-            i8[b + 65536 * 2] = partbytes[0][b];
-        res += part1(active);
-        for (let i = 1; i < linebytes.length; i++) {
+        for (let i = 0; i < linebytes.length; i++) {
             for (let a = 0; a < linebytes[i].length; a++)
                 i8[a + active * 65536] = linebytes[i][a];
-            for(let j = 1; j < partbytes.length; j++) {
+            for (let j = 0; j < partbytes.length; j++) {
                 for (let b = 0; b < partbytes[j].length; b++)
                     i8[b + 65536 * (2 + active)] = partbytes[j][b];
-                let temp = [];
+                /*let temp = [];
                 for (let c = 0; c < 65536; c++)
                     temp.push(i8[c + 65536 * (4 + active)]);
-                result1.push(temp);
+                result1.push(temp);*/
                 res += part1(active);
+
                 if(active)
                     active = 0;
                 else
                     active = 1;
             }
         }
-
-        if(active)
+        /*if(active)
             active = 0;
         else
             active = 1;
         let temp = [];
         for (let c = 0; c < 65536; c++)
             temp.push(i8[c + 65536 * (4 + active)]);
-        result1.push(temp);
-        res += part1(active);
+        result1.push(temp);*/
+
+        active = 1;
+        //result2 = [];
+        res2 = 0.0;
+        for (let i = 0; i < linebytes.length; i++) {
+            for (let a = 0; a < linebytes[i].length; a++)
+                i8[a + active * 65536] = linebytes[i][a];
+            for (let j = 0; j < partbytes.length; j++) {
+                for (let b = 0; b < partbytes[j].length; b++)
+                    i8[b + 65536 * (2 + active)] = partbytes[j][b];
+                /*let temp = [];
+                for (let c = 0; c < 65536; c++)
+                    temp.push(i8[c + 65536 * (4 + active)]);
+                result1.push(temp);*/
+                res2 += part2(res, active);
+                if (active)
+                    active = 0;
+                else
+                    active = 1;
+            }
+        }
+        /*if(active)
+            active = 0;
+        else
+            active = 1;
+        let temp = [];
+        for (let c = 0; c < 65536; c++)
+            temp.push(i8[c + 65536 * (4 + active)]);
+        result2.push(temp);*/
 
         let wasm_d3 = new Date().getTime();
         console.log("WebAssembly execution finished at: " + wasm_d3);
