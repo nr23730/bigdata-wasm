@@ -26,21 +26,19 @@
     <label id="conversion"></label><br/>
     Kotlin code to be executed in WebAssembly:<br/>
     <textarea id="code" style="width:350px;height:150px" disabled="disabled">
-fun part1(mode:Boolean):Double {
+fun part1(mode:Boolean):Float {
    val buffersize:Int = 65536
    var active:Int = 0
    if(mode)
       active = 1
    val intsize:Int = 4
-   val doublesize:Int = 8
-   var columns1:Int = memory[active * buffersize]
-   var columns2:Int = memory[(active + 2) * buffersize]
+   val floatsize:Int = 4
    var rows1:Int = memory[(active * buffersize ) + intsize]
    var rows2:Int = memory[(active + 2) * buffersize + intsize]
    var index1:Int = active * buffersize + 2 * intsize
    var index2:Int = (active + 2) * buffersize + 3 * intsize
    var index3:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize))
-   var result1:Double = 0.0
+   var result1:Float = 0.0F
    var start2:Int = 0
 
    index1 = index1 + rows1 * memory[index1] + 2 * intsize
@@ -54,32 +52,30 @@ fun part1(mode:Boolean):Double {
          index2 = index2 + intsize
       }
       index1 = index1 + intsize
-      index3 = index3 + doublesize
+      index3 = index3 + floatsize
    }
    memory[(active + 4) * buffersize + intsize] = 1
    memory[(active + 4) * buffersize + 2 * intsize] = 1
-   memory[(active + 4) * buffersize + 3 * intsize] = 8
+   memory[(active + 4) * buffersize + 3 * intsize] = 4
    memory[(active + 4) * buffersize + 4 * intsize] = result1
    return result1
 }
 
-fun part2(result1:Double, mode :Boolean):Double {
+fun part2(result1:Float, mode :Boolean):Float {
    val buffersize:Int = 65536
    var active:Int = 1
    if(mode)
       active = 0
    val intsize:Int = 4
-   val doublesize:Int = 8
-   result1 = result1 * 0.005
-   var columns1:Int = memory[active * buffersize]
-   var columns2:Int = memory[(active + 2) * buffersize]
+   val floatsize:Int = 4
+   result1 = result1 * 0.005F
    var rows1:Int = memory[(active * buffersize ) + intsize]
    var rows2:Int = memory[(active + 2) * buffersize + intsize]
    var index1:Int = active * buffersize + 2 * intsize
    var index2:Int = (active + 2) * buffersize + 3 * intsize
    var index3:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize))
-   var index4:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + intsize + doublesize * rows1)
-   var result2:Double = 0.0
+   var index4:Int = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + intsize + floatsize * rows1)
+   var result2:Float = 0.0F
    var start2:Int = 0
 
    index1 = index1 + rows1 * memory[index1] + 2 * intsize
@@ -93,51 +89,90 @@ fun part2(result1:Double, mode :Boolean):Double {
          index2 = index2 + intsize
       }
       index1 = index1 + intsize
-      index3 = index3 + doublesize
-      index4 = index4 + doublesize
+      index3 = index3 + floatsize
+      index4 = index4 + floatsize
    }
    memory[(active + 4) * buffersize + intsize] = 1
    memory[(active + 4) * buffersize + 2 * intsize] = 1
-   memory[(active + 4) * buffersize + 3 * intsize] = 8
+   memory[(active + 4) * buffersize + 3 * intsize] = 4
    memory[(active + 4) * buffersize + 4 * intsize] = result2
    return result2
 }
 </textarea> <br/>
     JavaScript code running in comparison:<br/>
     <textarea style="width:350px;height:150px" disabled="disabled">
-function union(mode) {
-   let buffersize = 1024;
-   let active = 1;
-   if(mode)
-      active = 0;
-   let intsize = 1;
-   let columns1 = i32[active * buffersize];
-   let columns2 = i32[(active + 2) * buffersize];
-   let rows1 = i32[(active * buffersize ) + intsize];
-   let rows2 = i32[(active + 2) * buffersize + intsize];
-   let index1 = active * buffersize + 2 * intsize;
-   let index2 = (active + 2) * buffersize + 2 * intsize;
-   let outvalues = 2 * intsize;
+    function t17a1(mode) {
+        let buffersize = 16384;
+        let active = 0;
+        if(mode)
+            active = 1;
+        let intsize = 1;
+        let floatsize = 1;
+        let rows1 = i32[(active * buffersize ) + intsize];
+        let rows2 = i32[(active + 2) * buffersize + intsize];
+        let index1 = active * buffersize + 2 * intsize;
+        let index2 = (active + 2) * buffersize + 3 * intsize;
+        let index3 = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize));
+        let result1 = 0.0;
+        let start2 = 0;
 
-   i32[(active + 4) * buffersize] = columns1;
-   i32[(active + 4) * buffersize + intsize] = rows1 + rows2;
-   for(let i = 0; i < columns1; i++) {
-         i32[(active + 4) * buffersize + outvalues] = i32[index1];
-         index1 = index1 + intsize;
-         index2 = index2 + intsize;
-         outvalues = outvalues + intsize;
-      for(let j = 0; j < rows1; j++) {
-         i32[(active + 4) * buffersize + outvalues] = i32[index1];
-         outvalues = outvalues + intsize;
-         index1 = index1 + intsize;
-      }
-      for(let k = 0; k < rows2; k++) {
-         i32[(active + 4) * buffersize + outvalues] = i32[index2];
-         outvalues = outvalues + intsize;
-         index2 = index2 + intsize;
-      }
-   }
-}
+        index1 = index1 + rows1 * (i32[index1]/4) + 2 * intsize;
+        start2 = index2;
+        for(let i = 0; i < rows1; i++) {
+            index2 = start2;
+            for(let j = 0; j < rows2; j++) {
+                if(i32[index1] == i32[index2]) {
+                    result1 = result1 + f32[index3];
+                }
+                index2 = index2 + intsize;
+            }
+            index1 = index1 + intsize;
+            index3 = index3 + floatsize;
+        }
+        i32[(active + 4) * buffersize + intsize] = 1;
+        i32[(active + 4) * buffersize + 2 * intsize] = 1;
+        f32[(active + 4) * buffersize + 3 * intsize] = 4;
+        f32[(active + 4) * buffersize + 4 * intsize] = result1;
+        return result1;
+    }
+
+    function t17a2(result1, mode) {
+        let buffersize = 16384;
+        let active = 1;
+        if(mode)
+            active = 0;
+        let intsize = 1;
+        let floatsize = 1;
+        result1 = result1 * 0.005;
+        let rows1 = i32[(active * buffersize ) + intsize];
+        let rows2 = i32[(active + 2) * buffersize + intsize];
+        let index1 = active * buffersize + 2 * intsize;
+        let index2 = (active + 2) * buffersize + 3 * intsize;
+        let index3 = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize));
+        let index4 = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + intsize + floatsize * rows1);
+        let result2 = 0.0;
+        let start2 = 0;
+
+        index1 = index1 + rows1 * (i32[index1]/4) + 2 * intsize;
+        start2 = index2;
+        for(let i = 0; i < rows1; i++) {
+            index2 = start2;
+            for(let j = 0; j < rows2; j++) {
+                if(i32[index1] == i32[index2] && result1 > f32[index3]) {
+                    result2 = result2 + f32[index4];
+                }
+                index2 = index2 + intsize;
+            }
+            index1 = index1 + intsize;
+            index3 = index3 + floatsize;
+            index4 = index4 + floatsize;
+        }
+        i32[(active + 4) * buffersize + intsize] = 1;
+        i32[(active + 4) * buffersize + 2 * intsize] = 1;
+        i32[(active + 4) * buffersize + 3 * intsize] = 4;
+        f32[(active + 4) * buffersize + 4 * intsize] = result2;
+        return result2;
+    }
 </textarea>
 
     <br/>
@@ -231,9 +266,9 @@ function union(mode) {
                 }
             }
             for (let i = 4; i < 8; i++) {
-                res.push(8, 0, 0, 0);
+                res.push(4, 0, 0, 0);
                 for (let j = factor * p; j < upper; j++) {
-                    res = res.concat([].slice.call(new Uint8Array(Float64Array.of(arr[j][i]).buffer)));
+                    res = res.concat([].slice.call(new Uint8Array(Float32Array.of(arr[j][i]).buffer)));
                 }
             }
             for (let i = 8; i < 10; i++) {
@@ -300,10 +335,10 @@ function union(mode) {
                     res.push(arr[j][6].charCodeAt(k));
             }
 
-            res.push(8, 0, 0, 0);
+            res.push(4, 0, 0, 0);
             for (let j = factor * p; j < upper; j++) {
                 for (let k = 0; k < arr[j][7].length; k++)
-                    res = res.concat([].slice.call(new Uint8Array(Float64Array.of(arr[j][7]).buffer)));
+                    res = res.concat([].slice.call(new Uint8Array(Float32Array.of(arr[j][7]).buffer)));
             }
 
             res.push(0, 0, 0, 0);
@@ -332,6 +367,7 @@ function union(mode) {
 
     var memory = new WebAssembly.Memory({initial: 600});
     var i32 = new Int32Array(memory.buffer);
+    var f32 = new Float32Array(memory.buffer);
     var i8 = new Int8Array(memory.buffer);
     let antlr4 = require('antlr4/index');
     let BigDataLexer = require('parser/BigDataLexer');
@@ -356,7 +392,6 @@ function union(mode) {
         let wasm_d2 = new Date().getTime();
         console.log("WebAssembly compiling finished at: " + wasm_d2);
         let active = 1;
-        //let result1 = [];
         res = 0.0;
         for (let i = 0; i < linebytes.length; i++) {
             for (let a = 0; a < linebytes[i].length; a++)
@@ -364,10 +399,6 @@ function union(mode) {
             for (let j = 0; j < partbytes.length; j++) {
                 for (let b = 0; b < partbytes[j].length; b++)
                     i8[b + 65536 * (2 + active)] = partbytes[j][b];
-                /*let temp = [];
-                for (let c = 0; c < 65536; c++)
-                    temp.push(i8[c + 65536 * (4 + active)]);
-                result1.push(temp);*/
                 res += part1(active);
 
                 if(active)
@@ -376,17 +407,8 @@ function union(mode) {
                     active = 1;
             }
         }
-        /*if(active)
-            active = 0;
-        else
-            active = 1;
-        let temp = [];
-        for (let c = 0; c < 65536; c++)
-            temp.push(i8[c + 65536 * (4 + active)]);
-        result1.push(temp);*/
 
         active = 1;
-        //result2 = [];
         res2 = 0.0;
         for (let i = 0; i < linebytes.length; i++) {
             for (let a = 0; a < linebytes[i].length; a++)
@@ -394,10 +416,6 @@ function union(mode) {
             for (let j = 0; j < partbytes.length; j++) {
                 for (let b = 0; b < partbytes[j].length; b++)
                     i8[b + 65536 * (2 + active)] = partbytes[j][b];
-                /*let temp = [];
-                for (let c = 0; c < 65536; c++)
-                    temp.push(i8[c + 65536 * (4 + active)]);
-                result1.push(temp);*/
                 res2 += part2(res, active);
                 if (active)
                     active = 0;
@@ -405,60 +423,123 @@ function union(mode) {
                     active = 1;
             }
         }
-        /*if(active)
-            active = 0;
-        else
-            active = 1;
-        let temp = [];
-        for (let c = 0; c < 65536; c++)
-            temp.push(i8[c + 65536 * (4 + active)]);
-        result2.push(temp);*/
 
         let wasm_d3 = new Date().getTime();
+        document.getElementById("result").innerHTML = res2;
         console.log("WebAssembly execution finished at: " + wasm_d3);
         console.log("WebAssembly compile&run took:" + (wasm_d3 - wasm_d1) + "ms");
         let js_d1 = new Date().getTime();
         console.log("JavaScript compiling started at: " + js_d1);
-        eval("function union(mode) {" +
-            "   let buffersize = 1024;" +
-            "   let active = 1;" +
-            "   if(mode)" +
-            "      active = 0;" +
-            "   let intsize = 1;" +
-            "   let columns1 = i32[active * buffersize];" +
-            "   let columns2 = i32[(active + 2) * buffersize];" +
-            "   let rows1 = i32[(active * buffersize ) + intsize];" +
-            "   let rows2 = i32[(active + 2) * buffersize + intsize];" +
-            "   let index1 = active * buffersize + 2 * intsize;" +
-            "   let index2 = (active + 2) * buffersize + 2 * intsize;" +
-            "   let outvalues = 2 * intsize;" +
+        eval("    function t17a1(mode) {" +
+            "        let buffersize = 16384;" +
+            "        let active = 0;" +
+            "        if(mode)" +
+            "            active = 1;" +
+            "        let intsize = 1;" +
+            "        let floatsize = 1;" +
+            "        let rows1 = i32[(active * buffersize ) + intsize];" +
+            "        let rows2 = i32[(active + 2) * buffersize + intsize];" +
+            "        let index1 = active * buffersize + 2 * intsize;" +
+            "        let index2 = (active + 2) * buffersize + 3 * intsize;" +
+            "        let index3 = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize));" +
+            "        let result1 = 0.0;" +
+            "        let start2 = 0;" +
             "" +
-            "   i32[(active + 4) * buffersize] = columns1;" +
-            "   i32[(active + 4) * buffersize + intsize] = rows1 + rows2;" +
-            "   for(let i = 0; i < columns1; i++) {" +
-            "         i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
-            "         index1 = index1 + intsize;" +
-            "         index2 = index2 + intsize;" +
-            "         outvalues = outvalues + intsize;" +
-            "      for(let j = 0; j < rows1; j++) {" +
-            "         i32[(active + 4) * buffersize + outvalues] = i32[index1];" +
-            "         outvalues = outvalues + intsize;" +
-            "         index1 = index1 + intsize;" +
-            "      }" +
-            "      for(let k = 0; k < rows2; k++) {" +
-            "         i32[(active + 4) * buffersize + outvalues] = i32[index2];" +
-            "         outvalues = outvalues + intsize;" +
-            "         index2 = index2 + intsize;" +
-            "      }" +
-            "   }" +
-            "}");
+            "        index1 = index1 + rows1 * (i32[index1]/4) + 2 * intsize;" +
+            "        start2 = index2;" +
+            "        for(let i = 0; i < rows1; i++) {" +
+            "            index2 = start2;" +
+            "            for(let j = 0; j < rows2; j++) {" +
+            "                if(i32[index1] == i32[index2]) {" +
+            "                    result1 = result1 + f32[index3];" +
+            "                }" +
+            "                index2 = index2 + intsize;" +
+            "            }" +
+            "            index1 = index1 + intsize;" +
+            "            index3 = index3 + floatsize;" +
+            "        }" +
+            "        i32[(active + 4) * buffersize + intsize] = 1;" +
+            "        i32[(active + 4) * buffersize + 2 * intsize] = 1;" +
+            "        f32[(active + 4) * buffersize + 3 * intsize] = 4;" +
+            "        f32[(active + 4) * buffersize + 4 * intsize] = result1;" +
+            "        return result1;" +
+            "    }" +
+            "" +
+            "    function t17a2(result1, mode) {" +
+            "        let buffersize = 16384;" +
+            "        let active = 1;" +
+            "        if(mode)" +
+            "            active = 0;" +
+            "        let intsize = 1;" +
+            "        let floatsize = 1;" +
+            "        result1 = result1 * 0.005;" +
+            "        let rows1 = i32[(active * buffersize ) + intsize];" +
+            "        let rows2 = i32[(active + 2) * buffersize + intsize];" +
+            "        let index1 = active * buffersize + 2 * intsize;" +
+            "        let index2 = (active + 2) * buffersize + 3 * intsize;" +
+            "        let index3 = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize));" +
+            "        let index4 = active * buffersize + 3 * intsize + (4 * (rows1 * intsize + intsize) + intsize + floatsize * rows1);" +
+            "        let result2 = 0.0;" +
+            "        let start2 = 0;" +
+            "" +
+            "        index1 = index1 + rows1 * (i32[index1]/4) + 2 * intsize;" +
+            "        start2 = index2;" +
+            "        for(let i = 0; i < rows1; i++) {" +
+            "            index2 = start2;" +
+            "            for(let j = 0; j < rows2; j++) {" +
+            "                if(i32[index1] == i32[index2] && result1 > f32[index3]) {" +
+            "                    result2 = result2 + f32[index4];" +
+            "                }" +
+            "                index2 = index2 + intsize;" +
+            "            }" +
+            "            index1 = index1 + intsize;" +
+            "            index3 = index3 + floatsize;" +
+            "            index4 = index4 + floatsize;" +
+            "        }" +
+            "        i32[(active + 4) * buffersize + intsize] = 1;" +
+            "        i32[(active + 4) * buffersize + 2 * intsize] = 1;" +
+            "        i32[(active + 4) * buffersize + 3 * intsize] = 4;" +
+            "        f32[(active + 4) * buffersize + 4 * intsize] = result2;" +
+            "        return result2;" +
+            "    }");
         let js_d2 = new Date().getTime();
         console.log("JavaScript compiling finished at: " + js_d2);
-        //for (let i = 0; i < iterations / 2; i++) {
-        //union(true);
-        //union(false);
-        //}
+
+        active = 1;
+        res = 0.0;
+        for (let i = 0; i < linebytes.length; i++) {
+            for (let a = 0; a < linebytes[i].length; a++)
+                i8[a + active * 65536] = linebytes[i][a];
+            for (let j = 0; j < partbytes.length; j++) {
+                for (let b = 0; b < partbytes[j].length; b++)
+                    i8[b + 65536 * (2 + active)] = partbytes[j][b];
+                res += t17a1(active);
+
+                if (active)
+                    active = 0;
+                else
+                    active = 1;
+            }
+        }
+
+        active = 1;
+        res2 = 0.0;
+        for (let i = 0; i < linebytes.length; i++) {
+            for (let a = 0; a < linebytes[i].length; a++)
+                i8[a + active * 65536] = linebytes[i][a];
+            for (let j = 0; j < partbytes.length; j++) {
+                for (let b = 0; b < partbytes[j].length; b++)
+                    i8[b + 65536 * (2 + active)] = partbytes[j][b];
+                res2 += t17a2(res, active);
+                if (active)
+                    active = 0;
+                else
+                    active = 1;
+            }
+        }
+
         let js_d3 = new Date().getTime();
+        document.getElementById("result2").innerHTML = res2;
         console.log("JavaScript execution finished at: " + js_d3);
         console.log("JavaScript execution execution took: " + (js_d3 - js_d1) + "ms");
         let wasmtime = 1000 * (wasm_d3 - wasm_d2);
