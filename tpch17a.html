@@ -542,9 +542,9 @@ fun part2(result1:Float, mode :Boolean):Float {
         document.getElementById("result2").innerHTML = res2;
         console.log("JavaScript execution finished at: " + js_d3);
         console.log("JavaScript execution execution took: " + (js_d3 - js_d1) + "ms");
-        let wasmtime = 1000 * (wasm_d3 - wasm_d2);
-        let jstime = 1000 * (js_d3 - js_d2);
-        let text = " won!\n\nWebAssembly: " + wasmtime + "mu s\nJavaScript: " + jstime + "mu s";
+        let wasmtime = wasm_d3 - wasm_d2;
+        let jstime = js_d3 - js_d2;
+        let text = " won!\n\nWebAssembly: " + wasmtime + "ms\nJavaScript: " + jstime + "ms";
         if (wasmtime < jstime)
             alert("WebAssembly" + text);
         else
