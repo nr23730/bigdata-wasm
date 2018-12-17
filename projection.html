@@ -21,7 +21,7 @@
     Kotlin code to be executed in WebAssembly:<br/>
     <textarea id="code" style="width:350px;height:150px" disabled="disabled">
 fun main(mode : Boolean) {
-   val buffersize:Int = 4096
+   val buffersize:Int = 65536
    var active:Int = 1
    if(mode)
       active = 0
@@ -98,7 +98,7 @@ function proj(mode) {
     <div id="result2" style="clear:both;font-weight:bold;"></div>
 </div>
 <script type="text/javascript">
-    var memory = new WebAssembly.Memory({initial: 1});
+    var memory = new WebAssembly.Memory({initial: 6});
     var i32 = new Uint32Array(memory.buffer);
     i32[0] = 10;
     i32[1] = 80;

@@ -139,7 +139,7 @@ var serializedATN = ["\u0003\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964",
     "\u0007\n\u0002\u0002\u00ca\u00cb\u00054\u001b\u0002\u00cb/\u0003\u0002",
     "\u0002\u0002\u00cc\u00cd\u0007\u0016\u0002\u0002\u00cd\u00ce\u0007\u0017",
     "\u0002\u0002\u00ce\u00cf\u00054\u001b\u0002\u00cf\u00d0\u0007\u0018",
-    "\u0002\u0002\u00d0\u00d1\u0007\n\u0002\u0002\u00d1\u00d2\u00056\u001c",
+    "\u0002\u0002\u00d0\u00d1\u0007\n\u0002\u0002\u00d1\u00d2\u00054\u001b",
     "\u0002\u00d21\u0003\u0002\u0002\u0002\u00d3\u00d4\u0007\u0019\u0002",
     "\u0002\u00d4\u00d5\u0007\u0006\u0002\u0002\u00d5\u00d6\u00054\u001b",
     "\u0002\u00d6\u00d7\u0007\u0007\u0002\u0002\u00d73\u0003\u0002\u0002",
@@ -209,7 +209,7 @@ var literalNames = [null, "'private'", "'public'", "'fun'", "'('", "')'",
     "'>'", "'>='", "'=='", "'!='", "'&&'", "'||'", null,
     "'Boolean'", "'Int'", "'Long'", "'Float'", "'Double'"];
 
-var symbolicNames = [ null, null, null, null, null, null, null, null, null,
+var symbolicNames = [null, null, null, null, null, null, null, null, null,
     null, null, null, null, null, null, null, null, null,
     null, null, null, null, null, null, null, null, null,
     null, null, null, null, null, null, null, null, null,
@@ -218,8 +218,8 @@ var symbolicNames = [ null, null, null, null, null, null, null, null, null,
     "INTEGER", "LONG", "FLOAT", "DOUBLE", "WHITESPACE"];
 
 var ruleNames =  [ "program", "programPart", "functionDefinition", "parameterDeclaration", 
-                   "functionParameter", "functionBody", "block", "statement", 
-                   "statementList", "functionCall", "ifStatement", "trueBlock",
+                   "functionParameter", "functionBody", "block", "statement",
+    "statementList", "functionCall", "ifStatement", "trueBlock",
     "falseBlock", "jump", "loop", "loopBool", "doWhileLoop",
     "whileLoop", "forLoop", "forExpression", "varDeclaration",
     "valDeclaration", "assignment", "memAssignment", "println",
@@ -2224,12 +2224,15 @@ function MemAssignmentContext(parser, parent, invokingState) {
 MemAssignmentContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
 MemAssignmentContext.prototype.constructor = MemAssignmentContext;
 
-MemAssignmentContext.prototype.expression = function() {
-    return this.getTypedRuleContext(ExpressionContext,0);
-};
-
-MemAssignmentContext.prototype.expressionList = function() {
-    return this.getTypedRuleContext(ExpressionListContext,0);
+MemAssignmentContext.prototype.expression = function (i) {
+    if (i === undefined) {
+        i = null;
+    }
+    if (i === null) {
+        return this.getTypedRuleContexts(ExpressionContext);
+    } else {
+        return this.getTypedRuleContext(ExpressionContext, i);
+    }
 };
 
 MemAssignmentContext.prototype.enterRule = function(listener) {
@@ -2266,7 +2269,7 @@ BigDataParser.prototype.memAssignment = function() {
         this.state = 206;
         this.match(BigDataParser.T__7);
         this.state = 207;
-        this.expressionList();
+        this.expression(0);
     } catch (re) {
     	if(re instanceof antlr4.error.RecognitionException) {
 	        localctx.exception = re;

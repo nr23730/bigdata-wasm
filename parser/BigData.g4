@@ -104,7 +104,7 @@ assignment
     ;
 
 memAssignment
-    :   'memory' '[' expression ']' '=' expressionList
+    :   'memory' '[' expression ']' '=' expression
     ;
 
 println

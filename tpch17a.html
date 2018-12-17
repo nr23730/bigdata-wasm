@@ -365,7 +365,7 @@ fun part2(result1:Float, mode :Boolean):Float {
         return leb;
     }
 
-    var memory = new WebAssembly.Memory({initial: 600});
+    var memory = new WebAssembly.Memory({initial: 6});
     var i32 = new Int32Array(memory.buffer);
     var f32 = new Float32Array(memory.buffer);
     var i8 = new Int8Array(memory.buffer);
@@ -399,6 +399,7 @@ fun part2(result1:Float, mode :Boolean):Float {
             for (let j = 0; j < partbytes.length; j++) {
                 for (let b = 0; b < partbytes[j].length; b++)
                     i8[b + 65536 * (2 + active)] = partbytes[j][b];
+                console.log(res);
                 res += part1(active);
 
                 if(active)
@@ -407,7 +408,7 @@ fun part2(result1:Float, mode :Boolean):Float {
                     active = 1;
             }
         }
-
+        console.log(res);
         active = 1;
         res2 = 0.0;
         for (let i = 0; i < linebytes.length; i++) {
