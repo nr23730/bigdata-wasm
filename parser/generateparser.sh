@@ -1,1 +1,1 @@
-java org.antlr.v4.Tool -Dlanguage=JavaScript BigData.g4
+antlr4 -Dlanguage=JavaScript BigData.g4

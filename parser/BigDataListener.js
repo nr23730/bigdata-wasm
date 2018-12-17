@@ -21,11 +21,20 @@ BigDataListener.prototype.exitProgram = function(ctx) {
 
 
 // Enter a parse tree produced by BigDataParser#programPart.
-BigDataListener.prototype.enterProgramPart = function (ctx) {
+BigDataListener.prototype.enterProgramPart = function(ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#programPart.
-BigDataListener.prototype.exitProgramPart = function (ctx) {
+BigDataListener.prototype.exitProgramPart = function(ctx) {
+};
+
+
+// Enter a parse tree produced by BigDataParser#globalVarDeclaration.
+BigDataListener.prototype.enterGlobalVarDeclaration = function(ctx) {
+};
+
+// Exit a parse tree produced by BigDataParser#globalVarDeclaration.
+BigDataListener.prototype.exitGlobalVarDeclaration = function(ctx) {
 };
 
 
@@ -201,11 +210,11 @@ BigDataListener.prototype.exitVarDeclaration = function(ctx) {
 
 
 // Enter a parse tree produced by BigDataParser#valDeclaration.
-BigDataListener.prototype.enterValDeclaration = function (ctx) {
+BigDataListener.prototype.enterValDeclaration = function(ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#valDeclaration.
-BigDataListener.prototype.exitValDeclaration = function (ctx) {
+BigDataListener.prototype.exitValDeclaration = function(ctx) {
 };
 
 
@@ -309,11 +318,11 @@ BigDataListener.prototype.exitPlus = function(ctx) {
 
 
 // Enter a parse tree produced by BigDataParser#Ident.
-BigDataListener.prototype.enterIdent = function (ctx) {
+BigDataListener.prototype.enterIdent = function(ctx) {
 };
 
 // Exit a parse tree produced by BigDataParser#Ident.
-BigDataListener.prototype.exitIdent = function (ctx) {
+BigDataListener.prototype.exitIdent = function(ctx) {
 };
 
 

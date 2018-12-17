@@ -6,7 +6,12 @@ program
 
 programPart
 	:   functionDefinition
+	|   globalVarDeclaration
 	;
+
+globalVarDeclaration
+    :   'var' varName=IDENTIFIER ':' type=TYPES '=' expression
+    ;
 
 functionDefinition
     :   modifier=('private'|'public')? 'fun' funcName=IDENTIFIER '(' params=parameterDeclaration? ')' (':' type=TYPES)? functionBody

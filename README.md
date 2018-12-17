@@ -46,6 +46,7 @@ Replace ``x`` with your desired sample size in GB.
 - modifiers (public, private) for functions
 - function calls (also recursive)
 - value definitions
+- global variable definitions
 - variable definitions
 - variable assignments
 - if/else

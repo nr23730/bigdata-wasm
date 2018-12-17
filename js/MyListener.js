@@ -105,7 +105,16 @@ class MyVisitor extends BigDataListener {
         //this map will contain maps with variables of specified functions
         this.variables = new Map();
 
+        //this map will contain global variables
+        this.globalVariables = new Map();
+
         this.currentFunc = "";
+
+        this.globalSection = [
+            0x06, //section code
+            //section size calculated afterwards
+            0x00 //number of global vars
+        ];
 
         this.exportCounter = 0;
         this.exportSection = [0x07, 0x00];
@@ -155,21 +164,31 @@ class MyVisitor extends BigDataListener {
     enterInteger(ctx) {
         //put instruction for 32bit integer on stack
         this.wat += "i32.const " + ctx.getText() + "\n";
-        this.bodySection.push(0x41);
 
         //put the integer on stack
-        this.bodySection = this.bodySection.concat(this.getSignedLEB128(ctx.getText()));
-        this.typeStack.push(Types.Int);
+        if(this.currentFunc != "") {
+            this.bodySection.push(0x41);
+            this.bodySection = this.bodySection.concat(this.getSignedLEB128(ctx.getText()));
+            this.typeStack.push(Types.Int);
+        } else {
+            this.globalSection.push(0x41);
+            this.globalSection = this.globalSection.concat(this.getSignedLEB128(ctx.getText()));
+        }
     }
 
     enterLong(ctx) {
         //put instruction for 64bit integer on stack
         this.wat += "i64.const " + ctx.getText().replace("L", "") + "\n";
-        this.bodySection.push(0x42);
 
         //put the long on stack
-        this.bodySection = this.bodySection.concat(this.getSignedLEB128(parseInt(ctx.getText())));
-        this.typeStack.push(Types.Long);
+        if(this.currentFunc != "") {
+            this.bodySection.push(0x42);
+            this.bodySection = this.bodySection.concat(this.getSignedLEB128(ctx.getText()));
+            this.typeStack.push(Types.Long);
+        } else {
+            this.globalSection.push(0x42);
+            this.globalSection = this.globalSection.concat(this.getSignedLEB128(ctx.getText()));
+        }
     }
 
     enterFloat(ctx) {
@@ -178,19 +197,29 @@ class MyVisitor extends BigDataListener {
         this.wat += "f32.const " + text + "\n";
 
         //put the float on stack
-        this.bodySection.push(0x43);
-        this.bodySection = this.bodySection.concat([].slice.call(this.getFloat32(text)));
-        this.typeStack.push(Types.Float);
+        if(this.currentFunc != "") {
+            this.bodySection.push(0x43);
+            this.bodySection = this.bodySection.concat([].slice.call(this.getFloat32(text)));
+            this.typeStack.push(Types.Float);
+        } else {
+            this.globalSection.push(0x43);
+            this.globalSection = this.globalSection.concat([].slice.call(this.getFloat32(text)));
+        }
     }
 
     enterDouble(ctx) {
         //put instruction for 64bit float on stack
         this.wat += "f64.const " + ctx.getText() + "\n";
-        this.bodySection.push(0x44);
 
         //put the double on stack
-        this.bodySection = this.bodySection.concat([].slice.call(this.getFloat64(ctx.getText())));
-        this.typeStack.push(Types.Double);
+        if(this.currentFunc != "") {
+            this.bodySection.push(0x44);
+            this.bodySection = this.bodySection.concat([].slice.call(this.getFloat64(ctx.getText())));
+            this.typeStack.push(Types.Double);
+        } else {
+            this.globalSection.push(0x44);
+            this.globalSection = this.globalSection.concat([].slice.call(this.getFloat64(ctx.getText())));
+        }
     }
 
     enterBoolean(ctx) {
@@ -248,9 +277,14 @@ class MyVisitor extends BigDataListener {
     enterVariable(ctx) {
         //put variable on type stack
         this.typeStack.push(this.getVarType(ctx.varName.text));
-        //put instruction to get a local variable on stack
-        this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(0x20);
+        //put instruction to get a local/global variable on stack
+        if(this.currentFunc != null && this.variables.get(this.currentFunc).has(ctx.varName.text)) {
+            this.wat += "get_local " + this.getVarIndex(ctx.varName.text) + "\n";
+            this.bodySection.push(0x20);
+        } else {
+            this.wat += "get_global " + this.getVarIndex(ctx.varName.text) + "\n";
+            this.bodySection.push(0x23);
+        }
 
         //put var index on stack
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
@@ -269,6 +303,22 @@ class MyVisitor extends BigDataListener {
         this.exitAssignment(ctx);
     }
 
+    enterGlobalVarDeclaration(ctx) {
+        let type = this.getTypeObject(ctx.type.text);
+        //save new global variable
+        this.globalVariables.set(ctx.varName.text, [this.globalVariables.size, type, false]);
+
+        this.globalSection[1]++;
+        this.globalSection.push(type.wasm, 0x01); //type and mutability
+        this.wat += "(global (mut i32) (";
+
+    }
+
+    exitGlobalVarDeclaration(ctx) {
+        this.globalSection.push(0x0b);
+        this.wat += "))\n";
+    }
+
     exitFunctionParameter(ctx) {
         //save new variable
         this.variables.get(this.currentFunc).set(ctx.varName.text, [this.variables.get(this.currentFunc).size, this.getTypeObject(ctx.type.text), true]);
@@ -276,10 +326,15 @@ class MyVisitor extends BigDataListener {
 
     exitAssignment(ctx) {
         let type = this.typeStack.pop();
-        if (type != this.getVarType(ctx.varName.text))
-            throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string) + ", Found: " + type.string;
-        this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
-        this.bodySection.push(0x21);
+        if(this.variables.get(this.currentFunc).has(ctx.varName.text)) {
+            if (type != this.getVarType(ctx.varName.text))
+                throw("Assigning wrong datatype. Expected: " + this.getVarType(ctx.varName.text).string) + ", Found: " + type.string;
+            this.wat += "set_local " + this.getVarIndex(ctx.varName.text) + "\n";
+            this.bodySection.push(0x21);
+        } else {
+            this.wat += "set_global " + this.getVarIndex(ctx.varName.text) + "\n";
+            this.bodySection.push(0x24);
+        }
         this.bodySection.push(this.getVarIndex(ctx.varName.text));
     }
 
@@ -694,15 +749,16 @@ class MyVisitor extends BigDataListener {
         //export the function
         if (ctx.modifier == null || ctx.modifier.text == "public") {
             this.exportCounter++;
-            this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n" +
-                "(func $" + this.currentFunc + " (param " + this.currentFunc + ") (result " + this.currentFunc + ")\n" +
-                "(local " + this.currentFunc + ")\n";
+            this.wat += "(export \"" + this.currentFunc + "\" (func $" + this.currentFunc + "))\n";
             this.exportSection.push(this.currentFunc.length);
             this.exportSection = this.exportSection.concat([].slice.call(this.getUInt8(this.currentFunc)));
             this.exportSection.push(0x00, this.typeSection[1]);
             this.exportSection[1] = this.exportCounter;
             this.exportCode += "" + this.currentFunc + " = wasmInstance.exports." + this.currentFunc + "; ";
         }
+
+        this.wat +=  "(func $" + this.currentFunc + " (param " + this.currentFunc + ") (result " + this.currentFunc + ")\n" +
+                     "(local " + this.currentFunc + ")\n";
 
         //init function body
         this.bodySection.push(0x00); //temporary length
@@ -1108,11 +1164,15 @@ class MyVisitor extends BigDataListener {
     }
 
     getVarIndex(ctx) {
-        return this.variables.get(this.currentFunc).get(ctx)[0];
+        if(this.currentFunc != "" && this.variables.get(this.currentFunc).has(ctx))
+            return this.variables.get(this.currentFunc).get(ctx)[0];
+        return this.globalVariables.get(ctx)[0];
     }
 
     getVarType(ctx) {
-        return this.variables.get(this.currentFunc).get(ctx)[1];
+        if(this.currentFunc != "" && this.variables.get(this.currentFunc).has(ctx))
+            return this.variables.get(this.currentFunc).get(ctx)[1];
+        return this.globalVariables.get(ctx)[1];
     }
 
     /**
@@ -1148,6 +1208,10 @@ class MyVisitor extends BigDataListener {
         for (let i = 0; i < functionLength.length; i++)
             this.functionSection.splice(1 + i, 0, functionLength[i]);
 
+        let globalLength = this.getUnsignedLEB128(this.globalSection.length - 1);
+        for (let i = 0; i < globalLength.length; i++)
+            this.globalSection.splice(1 + i, 0, globalLength[i]);
+
         let exportLength = this.getUnsignedLEB128(this.exportSection.length - 1);
         for (let i = 0; i < exportLength.length; i++)
             this.exportSection.splice(1 + i, 0, exportLength[i]);
@@ -1162,6 +1226,7 @@ class MyVisitor extends BigDataListener {
             .concat(this.typeSection)
             .concat(this.importSection)
             .concat(this.functionSection)
+            .concat(this.globalSection)
             .concat(this.exportSection)
             .concat(this.codeSection));
     }
