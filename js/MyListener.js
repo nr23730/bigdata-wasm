@@ -512,7 +512,7 @@ class MyVisitor extends BigDataListener {
                     break;
                 case Types.Float:
                     this.wat += type.wat + ".lt\n";
-                    this.bodySection.push(0x3f);
+                    this.bodySection.push(0x5d);
                     break;
                 case Types.Double:
                     this.wat += type.wat + ".lt\n";
