@@ -18,8 +18,11 @@
 </ul>
 </p>
 <div id="inputs" style="float:left;">iterations: <input id="iterations-value" type="text" value="10000"/><br/>
-    Kotlin code to be executed in WebAssembly:<br/>
-    <textarea id="code" style="width:350px;height:150px" disabled="disabled">
+    <div id="inputs" style="float:left;">input scale: <input id="scale" type="text" value="1"/> * 800 attribute values
+        <button onclick="generate()">generate data</button>
+        <label id="generating"></label><br/>
+        Kotlin code to be executed in WebAssembly:<br/>
+        <textarea id="code" style="width:350px;height:150px" disabled="disabled">
 fun main(mode : Boolean) {
    val buffersize:Int = 65536
    var active:Int = 1
@@ -52,16 +55,17 @@ fun main(mode : Boolean) {
    memory[(2 + active) * buffersize + intsize] = rows
 }
 </textarea> <br/>
-    JavaScript code running in comparison:<br/>
-    <textarea style="width:350px;height:150px" disabled="disabled">
+        JavaScript code running in comparison:<br/>
+        <textarea style="width:350px;height:150px" disabled="disabled">
 function proj(mode) {
-   let buffersize = 1024;
+   let mem = new DataView(memory.buffer);
+   let buffersize = 65536;
    let active = 1;
    if(mode)
       active = 0;
-   let intsize = 1;
-   let columns = i32[active * buffersize];
-   let rows = i32[active * buffersize + intsize];
+   let intsize = 4;
+   let columns = mem.getInt32(active * buffersize, true);
+   let rows = mem.getInt32(active * buffersize + intsize, true);
    let index = 2 * intsize;
    let column = 0;
    let outvalues = 2 * intsize;
@@ -69,11 +73,11 @@ function proj(mode) {
 
    while(index < buffersize && column < columns) {
       if(column == 0 || column == 5 || column == 6) {
-         i32[(2 + active) * buffersize + outvalues] = i32[active * buffersize + index];
+         mem.setInt32((2 + active) * buffersize + outvalues, mem.getInt32(active * buffersize + index, true), true);
          outvalues = outvalues + intsize;
          index = index + intsize;
          for(let i = 0; i < rows; i++) {
-            i32[(2 + active) * buffersize + outvalues] = i32[active * buffersize + index];
+            mem.setInt32((2 + active) * buffersize + outvalues, mem.getInt32(active * buffersize + index, true), true);
             outvalues = outvalues + intsize;
             index = index + intsize;
          }
@@ -82,43 +86,50 @@ function proj(mode) {
       }
       column = column + 1;
    }
-   i32[(2 + active) * buffersize] = outcolumns;
-   i32[(2 + active) * buffersize + intsize] = rows;
+   mem.setInt32((2 + active) * buffersize, outcolumns, true);
+   mem.setInt32(2 + active) * buffersize + intsize, rows, true);
 }
 </textarea>
 
-    <br/>
-    <button id="parse">compile + execute</button>
-    <br/>
-    Note: Clicking on the button will make the compiler run with the code above.<br/>
-    If you just want to run the already compiled function again,<br/>
-    please open your JavaScript console and type: "main(yourvalue)".
-    <br/><br/>
-    <div id="result" style="clear:both;font-weight:bold;"></div>
-    <div id="result2" style="clear:both;font-weight:bold;"></div>
+        <br/>
+        <button id="parse">compile + execute</button>
+        <br/>
+        Note: Clicking on the button will make the compiler run with the code above.<br/>
+        If you just want to run the already compiled function again,<br/>
+        please open your JavaScript console and type: "main(yourvalue)".
+        <br/><br/>
+        <div id="result" style="clear:both;font-weight:bold;"></div>
+        <div id="result2" style="clear:both;font-weight:bold;"></div>
 </div>
 <script type="text/javascript">
-    var memory = new WebAssembly.Memory({initial: 6});
+    var memory = new WebAssembly.Memory({initial: 4});
     var i32 = new Uint32Array(memory.buffer);
-    i32[0] = 10;
-    i32[1] = 80;
-    for (let i = 0; i < 10; i++)
-        for (let j = 0; j < 81; j++)
-            i32[3 + i * 81 + j] = i;
-    for (let i = 0; i < 10; i++)
-        i32[2 + 81 * i] = 4;
-
-    i32[1024] = 10;
-    i32[1025] = 80;
-    for (let i = 0; i < 10; i++)
-        for (let j = 0; j < 81; j++)
-            i32[1027 + i * 81 + j] = 100 + i;
-    for (let i = 0; i < 10; i++)
-        i32[1026 + 81 * i] = 4;
     let antlr4 = require('antlr4/index');
     let BigDataLexer = require('parser/BigDataLexer');
     let BigDataParser = require('parser/BigDataParser');
     let MyListener = require('js/MyListener');
+
+    function generate() {
+        document.getElementById("generating").innerHTML = "";
+        let scale = document.getElementById("scale").value;
+        i32[0] = 10;
+        i32[1] = 80 * scale;
+        for (let i = 0; i < 10; i++)
+            for (let j = 0; j < ((80 * scale) + 1); j++)
+                i32[3 + i * ((80 * scale) + 1) + j] = i;
+        for (let i = 0; i < 10; i++)
+            i32[2 + ((80 * scale) + 1) * i] = 4;
+
+        i32[16384] = 10;
+        i32[16385] = 80 * scale;
+        for (let i = 0; i < 10; i++)
+            for (let j = 0; j < ((80 * scale) + 1); j++)
+                i32[16387 + i * ((80 * scale) + 1) + j] = 100 + i;
+        for (let i = 0; i < 10; i++)
+            i32[16386 + ((80 * scale) + 1) * i] = 4;
+        document.getElementById("generating").innerHTML = "finished";
+    }
+
     document.getElementById("parse").addEventListener("click", function () {
         let iterations = document.getElementById("iterations-value").value;
         let wasm_d1 = new Date().getTime();
@@ -148,7 +159,7 @@ function proj(mode) {
         let js_d1 = new Date().getTime();
         console.log("JavaScript compiling started at: " + js_d1);
         eval("function proj(mode) {" +
-            "   let buffersize = 1024;" +
+            "   let buffersize = 16384;" +
             "   let active = 1;" +
             "   if(mode)" +
             "      active = 0;" +
